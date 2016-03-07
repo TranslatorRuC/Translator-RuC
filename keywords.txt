@@ -10,6 +10,7 @@ DEFAULT default УМОЛЧАНИЕ умолчание
 DO do ЦИКЛ цикл
 ELSE else ИНАЧЕ иначе
 ENUM enum ПЕРЕЧЕНЬ перечень
+STRUCT struct СТРУКТУРА структура
 FOR for ДЛЯ для
 GOTO goto ПЕРЕХОД переход
 IF if ЕСЛИ если

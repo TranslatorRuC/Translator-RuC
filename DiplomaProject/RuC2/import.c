@@ -104,7 +104,7 @@ void runtimeerr(int e, int i, int r)
     switch (e)
     {
         case index_out_of_range:
-            printf("индекс %i за пределами границ массива %i\n", i, r);
+            printf("index out of range. индекс %i за пределами границ массива %i\n", i, r);
             break;
         case wrong_kop:
             printf("команду %i я пока не реализовал\n", i);
@@ -257,7 +257,7 @@ void import()
     system("i2cset -y 2 0x48 0x13 0x1000 w");
 #endif
     
-    input = fopen("C:/Users/GOD/Documents/Visual Studio 2013/Projects/TestDimloma2/TestDimloma2/export.txt", "r");
+    input = fopen("C:/Users/GOD/Desktop/DiplomVsProject/DiplomaProject/export.txt", "r");
     
     fscanf(input, "%i %i %i %i %i\n", &pc, &funcnum, &id, &rp, &maxdisplg);
 

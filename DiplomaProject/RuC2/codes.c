@@ -105,7 +105,10 @@ void tablesandtree()
                 break;
             case TReturnval:
                 fprintf(output, "TReturnval \n");
-                break;
+				break;
+			case TStruct:
+				fprintf(output, "TStruct \n");
+				break;
             case TGoto:
                 fprintf(output, "TGoto %i\n", tree[i++]);
                 break;
@@ -178,7 +181,7 @@ void tablesandcode()
         }
     }
     fprintf(output, "\n");
-/*
+	
     fprintf(output, "\n%s\n", "identab");
     i = 2;
     while (i < id)
@@ -196,7 +199,7 @@ void tablesandcode()
     fprintf(output, "\n%s\n", "modetab");
     for (i=0; i<md; i++)
         fprintf(output, "md %i) %i\n", i, modetab[i]);
-*/    
+    
     fprintf(output, "%s\n", "mem");
     i = 0;
     while (i < pc)

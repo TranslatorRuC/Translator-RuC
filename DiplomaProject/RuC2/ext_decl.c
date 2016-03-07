@@ -166,7 +166,7 @@ void primaryexpr()
         while (sp > oldsp)
             binop(stackop[--sp]);
     }
-    else if (cur <= -23)            // стандартная функция
+    else if (cur <= -24)            // стандартная функция
     {
         int func = cur;
         mustbe(LEFTBR, no_leftbr_in_stand_func);
@@ -1227,14 +1227,82 @@ int func_declarator(int level, int func_d, int firstdecl)
     return modetab[startmode]+1;
 }
 
+void to_type_tab(int val)
+{
+
+}
+
+void struct_eat()
+{
+	int nextL = scaner();
+	if (nextL == BEGIN)
+	{
+		//TODO: подумать, как сделать структуры без идентификатора
+	}
+	else if (nextL == IDENT)
+	{
+		int structIdent = scaner();
+		if (nextL == IDENT)
+		{
+			//Это создание переменной типа структуры
+			scaner();
+			int repeat = 1;
+			idorpnt(after_type_must_be_ident);
+			do
+			{
+				type = firstdecl + point;
+
+				decl_id();
+
+				if (next == COMMA)
+				{
+					scaner();
+					idorpnt(wait_ident_after_comma_in_decl);
+				}
+				else if (next == SEMICOLON)
+				{
+					scaner();
+					repeat = 0;
+				}
+				else
+					error(def_must_end_with_semicomma);
+			} while (repeat);
+		}
+		else
+		{
+			//объявление структуры
+			//typetab[tp++] = 1;
+			if (nextL == BEGIN)
+			{
+				while (next != END)
+				{
+					int type = scaner();
+					int ident = scaner();
+				}
+			}
+		}	
+	}
+	else
+	{
+		error(after_struct_must_be_ident_or_begin);
+	}
+}
+
 void ext_decl()
 {
     do            // top level описания переменных и функций до конца файла
     {
         int repeat = 1, funrepr, first = 1;
         func_def = 3;   // func_def = 0 - (), 1 - определение функции, 2 - это предописание, 3 - не знаем или вообще не функция
+		type = scaner();
 
-        if ((type = scaner()) == LINT || type == LCHAR || type == LFLOAT || type == LVOID)
+		//Тип - структура!
+		if (type == LSTRUCT)
+		{
+			struct_eat();
+		}
+
+		else if (type == LINT || type == LCHAR || type == LFLOAT || type == LVOID)
             idorpnt(after_type_must_be_ident);
         else
         {

@@ -14,6 +14,7 @@
 #define MAXMEMSIZE 10000
 #define MAXTREESIZE 10000
 #define MAXMODSIZE 10000
+#define MAXTYPESIZE 10000
 #define FUNCSIZE   1000
 #define SOURCESIZE 10000
 #define LINESSIZE  3000
@@ -265,30 +266,30 @@
 #define LDEFAULT  -8
 #define LDO    -9
 #define LELSE  -10
-#define LENUM  -11
-#define LFOR   -12
-#define LGOTO  -13
-#define LIF    -14
-#define LRETURN -15
-#define LSIZEOF -16
-#define LSWITCH -17
-#define LWHILE  -18
-#define PRINTID -19
-#define PRINT   -20
-#define GETID   -21
-#define SETMOTOR  -22
-#define SLEEP     -23     // до этого места операторы, а затем функции
-#define GETDIGSENSOR -24
-#define GETANSENSOR -25
-#define ABS      -26
-#define SQRT     -27
-#define EXP      -28
-#define SIN      -29
-#define COS      -30
-#define LOG      -31
-#define LOG10    -32
-#define ASIN     -33
-
+#define LENUM   -11
+#define LSTRUCT -12
+#define LFOR    -13
+#define LGOTO   -14
+#define LIF     -15
+#define LRETURN -16
+#define LSIZEOF -17
+#define LSWITCH -18
+#define LWHILE  -19
+#define PRINTID -20
+#define PRINT   -21
+#define GETID   -22
+#define SETMOTOR  -23
+#define SLEEP     -24     // до этого места операторы, а затем функции
+#define GETDIGSENSOR -25
+#define GETANSENSOR -26
+#define ABS      -27
+#define SQRT     -28
+#define EXP      -29
+#define SIN      -30
+#define COS      -31
+#define LOG      -32
+#define LOG10    -33
+#define ASIN     -34
 
 // Узлы дерева
 #define TIdent      -300
@@ -324,6 +325,7 @@
 #define TPrint      -329
 #define TPrintid    -330
 #define TGetid      -331
+#define TStruct     -332
 
 // Коды ошибок
 
@@ -422,6 +424,8 @@
 #define must_be_digit_after_exp            293
 #define label_not_declared                 294
 #define repeated_label                     295
+//struct errors
+#define after_struct_must_be_ident_or_begin 296
 
 
 #endif

@@ -263,6 +263,11 @@ int scan()
                 nextch();
                 cr = DEC;
             }
+			else if (curchar == '>')
+			{
+				nextch();
+				cr = ARROW;
+			}
             else
                 cr = LMINUS;
             return cr;
@@ -449,6 +454,11 @@ int scan()
             nextch();
             return COLON;
         }
+		case '.':
+		{
+			nextch();
+			return DOT;
+		}
             
         case '0':
         case '1':
@@ -460,7 +470,6 @@ int scan()
         case '7':
         case '8':
         case '9':
-        case '.':
         {
             int flag = 1;
             float k;

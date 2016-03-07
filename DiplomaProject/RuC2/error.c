@@ -310,7 +310,11 @@ void error(int ernum)
             printident(repr);
             printf("\n");
             break;
-
+		case after_struct_must_be_ident_or_begin:
+			printf("После ключевого слова 'стркутура' должно быть имя структуры");
+			printident(repr);
+			printf("\n");
+			break;
             
         default: ;
     }
