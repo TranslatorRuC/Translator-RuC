@@ -197,6 +197,7 @@
 #define DOUBLE  173
 #define DEFARR2 174
 #define ASSARR2 175
+#define DEFSTRUCTID 176
 
 // Коды операций стандартных функций
 
@@ -325,7 +326,7 @@
 #define TPrint      -329
 #define TPrintid    -330
 #define TGetid      -331
-#define TStruct     -332
+#define TStructFld  -332
 
 // Коды ошибок
 

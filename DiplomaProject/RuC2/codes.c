@@ -37,6 +37,10 @@ void tablesandtree()
         fprintf(output, "\n");
         i +=4;
     }
+
+	fprintf(output, "\n%s\n", "reprtab");
+	for (i = 1165; i <= rp; i++)
+		fprintf(output, "rp %i) %i\n", i, reprtab[i]);
     
     fprintf(output, "\n%s\n", "functions");
     for (i=1; i<=funcnum; i++)
@@ -45,6 +49,10 @@ void tablesandtree()
     fprintf(output, "\n%s\n", "modetab");
     for (i=0; i<md; i++)
         fprintf(output, "md %i) %i\n", i, modetab[i]);
+
+	fprintf(output, "\n%s\n", "typeTab");
+	for (i = 20; i<tp; i++)
+		fprintf(output, "tp %i) %i\n", i, typetab[i]);
     
     fprintf(output, "\n%s\n", "tree");
     for (i=0; i<=tc; i++)
@@ -106,8 +114,8 @@ void tablesandtree()
             case TReturnval:
                 fprintf(output, "TReturnval \n");
 				break;
-			case TStruct:
-				fprintf(output, "TStruct \n");
+			case TStructFld:
+				fprintf(output, "TStructFld %i\n", tree[i++]);
 				break;
             case TGoto:
                 fprintf(output, "TGoto %i\n", tree[i++]);
@@ -262,6 +270,10 @@ void tablesandcode()
             case DECX:
                 fprintf(output, "DECX\n");
                 break;
+			case DEFSTRUCTID:
+				fprintf(output, "DEFSTRUCTID ");
+				fprintf(output, "%i\n", mem[i++]);
+				break;
             case DEFARR:
                 fprintf(output, "DEFARR ");
                 fprintf(output, "%i\n", mem[i++]);
@@ -636,6 +648,9 @@ void tablesandcode()
             case SLICE:
                 fprintf(output, "SLICE\n");
                 break;
+			case DOT:
+				fprintf(output, "DOT\n");
+				break;
             case ASSARR:
                 fprintf(output, "ASSARR ");
                 fprintf(output, "%i ", mem[i++]);
@@ -753,6 +768,10 @@ void cd(int pcl)
                 printf("DEFARR ");
                 printf("%i\n", mem[i++]);
                 break;
+			case DEFSTRUCTID:
+				printf("DEFSTRUCTID ");
+				printf("%i\n", mem[i++]);
+				break;
             case DEFARR2:
                 printf("DEFARR2 ");
                 printf("%i\n", mem[i++]);

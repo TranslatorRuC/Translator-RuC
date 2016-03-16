@@ -118,6 +118,16 @@ void Expr_gen(int adfi)
                 tocode(SLICE);
             }
                 break;
+
+			case TStructFld:
+			{
+				int displ = identab[tree[++tc] + 3];
+				tc++;
+				tocode(LOAD);
+				tocode(displ);
+				Expr_gen(0);
+			}
+				break;
                 
             case TSlice:
             {
@@ -442,8 +452,16 @@ void Declid_gen()
 {
     int identref = tree[tc++], initref = tree[tc++], N = tree[tc++];
     int olddispl = identab[identref+3], i;
+	int type = identab[identref + 2];
     if (N == 0)
     {
+		if (type > 0)
+		{
+			tocode(LI);
+			tocode(typetab[type+1]);
+			tocode(DEFSTRUCTID);
+			tocode(olddispl);
+		}
         if (initref)
         {
             Expr_gen(0);
@@ -543,5 +561,4 @@ void codegen()
     tocode(CALL2);
     tocode(identab[wasmain+3]);
     tocode(STOP);
-
 }

@@ -104,31 +104,31 @@ void runtimeerr(int e, int i, int r)
     switch (e)
     {
         case index_out_of_range:
-            printf("index out of range. индекс %i за пределами границ массива %i\n", i, r);
+            printf("1индекс %i за пределами границ массива %i\n", i, r);
             break;
         case wrong_kop:
-            printf("команду %i я пока не реализовал\n", i);
+            printf("2команду %i я пока не реализовал\n", i);
             break;
         case wrong_arr_init:
-            printf("массив с %i элементами инициализируется %i значениями\n", i, r);
+            printf("3массив с %i элементами инициализируется %i значениями\n", i, r);
             break;
         case wrong_motor_num:
-            printf("номер силового мотора %i, а должен быть от 1 до 4\n", i);
+            printf("4номер силового мотора %i, а должен быть от 1 до 4\n", i);
             break;
         case wrong_motor_pow:
-            printf("задаваемая мощность мотора %i равна %i, а должна быть от -100 до 100\n", i, r);
+            printf("5задаваемая мощность мотора %i равна %i, а должна быть от -100 до 100\n", i, r);
             break;
         case wrong_digsensor_num:
-            printf("номер цифрового сенсора %i, а должен быть 1 или 2\n", i);
+            printf("6номер цифрового сенсора %i, а должен быть 1 или 2\n", i);
             break;
         case wrong_ansensor_num:
-            printf("номер аналогового сенсора %i, а должен быть от 1 до 6\n", i);
+            printf("7номер аналогового сенсора %i, а должен быть от 1 до 6\n", i);
             break;
         case wrong_robot_com:
-            printf("робот не может исполнить команду\n");
+            printf("8робот не может исполнить команду\n");
             break;
         case wrong_number_of_elems:
-            printf("количиство элементов в массиве по каждому измерению должно быть положительным, а тут %i", r);
+            printf("9количиство элементов в массиве по каждому измерению должно быть положительным, а тут %i", r);
             
             
         default:
@@ -385,6 +385,12 @@ void import()
             case DECX:
                 x--;
                 break;
+			case DEFSTRUCTID:
+				if (mem[x] <= 0)
+					runtimeerr(wrong_number_of_elems, 0, mem[x]);
+				mem[dsp()] = x + 1;
+				x += mem[x];
+				break;
             case DEFARR:
                 if (mem[x] <= 0)
                     runtimeerr(wrong_number_of_elems, 0, mem[x]);
@@ -463,6 +469,11 @@ void import()
             case BNE0:
                 pc = (mem[x--]) ? mem[pc] : pc + 1;
                 break;
+			case DOT:
+				i = mem[x--];   // index of str field
+				r = mem[x];     // struct ident
+				mem[x] = r + i;
+				break;
             case SLICE:
                 i = mem[x--];   // index
                 r = mem[x];     // array
