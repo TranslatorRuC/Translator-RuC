@@ -49,10 +49,6 @@ void tablesandtree()
     fprintf(output, "\n%s\n", "modetab");
     for (i=0; i<md; i++)
         fprintf(output, "md %i) %i\n", i, modetab[i]);
-
-	fprintf(output, "\n%s\n", "typeTab");
-	for (i = 20; i<tp; i++)
-		fprintf(output, "tp %i) %i\n", i, typetab[i]);
     
     fprintf(output, "\n%s\n", "tree");
     for (i=0; i<=tc; i++)

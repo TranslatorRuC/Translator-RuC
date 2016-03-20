@@ -21,7 +21,7 @@ extern int line, charnum, cur, next, next1, num, numr, hash, repr, keywordsnum,
 source[SOURCESIZE], lines[LINESSIZE];
 
 extern int nextchar, curchar, func_def;
-extern int hashtab[256], reprtab[MAXREPRTAB], rp, identab[MAXIDENTAB], id, modetab[MAXMODSIZE], md, typetab[MAXTYPESIZE], tp, lasttype, startmode, functions[], funcnum,
+extern int hashtab[256], reprtab[MAXREPRTAB], rp, identab[MAXIDENTAB], id, modetab[MAXMODSIZE], md, startmode, functions[], funcnum, lasttype,
 stack[100], stackop[100], stackoperands[100], ansttype,
     sp, sopnd, aux, lastid, curid, lg, displ, maxdispl, maxdisplg, type, op, firstdecl, point;
 

@@ -458,7 +458,7 @@ void Declid_gen()
 		if (type > 0)
 		{
 			tocode(LI);
-			tocode(typetab[type+1]);
+			tocode(modetab[type+1]);
 			tocode(DEFSTRUCTID);
 			tocode(olddispl);
 		}
