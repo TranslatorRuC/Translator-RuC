@@ -55,7 +55,7 @@ void Expr_gen(int adfi)
                 tc++;
                 lastid = tree[tc++];
                 anstdispl = identab[lastid+3];
-                if (identab[lastid+2] > 0)
+				if (identab[lastid + 2] > 0)
                 {
                     if (anstdispl > 0)
                     {

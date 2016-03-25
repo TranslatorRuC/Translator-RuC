@@ -14,7 +14,6 @@
 #define MAXMEMSIZE 10000
 #define MAXTREESIZE 10000
 #define MAXMODSIZE 10000
-#define MAXTYPESIZE 10000
 #define FUNCSIZE   1000
 #define SOURCESIZE 10000
 #define LINESSIZE  3000
@@ -427,6 +426,7 @@
 #define repeated_label                     295
 //struct errors
 #define after_struct_must_be_ident_or_begin 296
-
+#define type_is_not_declared               297
+#define field_not_found                    298
 
 #endif

@@ -311,8 +311,15 @@ void error(int ernum)
             printf("\n");
             break;
 		case after_struct_must_be_ident_or_begin:
-			printf("После ключевого слова 'стркутура' должно быть имя структуры");
-			printident(repr);
+			printf("8После ключевого слова 'стркутура' должно быть имя типа структуры или описание полей");
+			printf("\n");
+			break;
+		case type_is_not_declared:
+			printf("9тип структуры не объявлен");
+			printf("\n");
+			break;
+		case field_not_found:
+			printf("У структуры нет такого поля");
 			printf("\n");
 			break;
             

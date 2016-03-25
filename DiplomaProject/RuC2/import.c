@@ -386,8 +386,6 @@ void import()
                 x--;
                 break;
 			case DEFSTRUCTID:
-				if (mem[x] <= 0)
-					runtimeerr(wrong_number_of_elems, 0, mem[x]);
 				mem[dsp()] = x + 1;
 				x += mem[x];
 				break;

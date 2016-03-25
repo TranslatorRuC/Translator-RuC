@@ -294,10 +294,6 @@ void postexpr()
          stackoperands[sopnd] = ansttype = modetab[leftansttype] + 8;   //  --?
          anst = VAL;
      }
-     //else if (leftansttype > 0)
-     //   error(func_not_in_call);
-     //else if (leftansttype !=LINT && leftansttype != LCHAR && leftansttype != LFLOAT && leftansttype != ROWOFCHAR)
-     //   error(wrong_operand);
 	 else if (next == DOT || next == ARROW)
 	 {		 
 		 op = scaner();
@@ -319,7 +315,7 @@ void postexpr()
 			 }
 			 if (curr_field_num == -1)
 			 {
-				 //ошибка: у структуры нет такого поля.
+				 error(field_not_found);
 			 }
 			 totree(TStructFld);
 			 totree(lid);
@@ -330,6 +326,10 @@ void postexpr()
 			 anst = ADDR;
 		 }		 
 	 }
+	 else if (leftansttype > 0)
+		 error(func_not_in_call);
+	 else if (leftansttype != LINT && leftansttype != LCHAR && leftansttype != LFLOAT && leftansttype != ROWOFCHAR)
+		 error(wrong_operand);
      else if (next == INC || next == DEC)
      {
          if  (leftanst != IDENT && anst != ADDR)
@@ -656,7 +656,7 @@ void statement()
     int flagsemicol = 1, oldwasdefault = wasdefault, oldinswitch = inswitch;
     wasdefault = 0;
     scaner();
-    if ((cur == LINT || cur == LCHAR || cur == LFLOAT || cur == LVOID) && blockflag)
+    if ((cur == LINT || cur == LCHAR || cur == LFLOAT || cur == LVOID || cur == LSTRUCT) && blockflag)
         error(decl_after_strmt);
     if (cur == BEGIN)
     {
@@ -1072,8 +1072,9 @@ int modeeq(int prot, int fun)
         return 0;
     else
     {
+		int modifier = modetab[prot] == 0 ? 2 : 1;
         for (i=0; i<n && flag ; i++)
-            flag = modetab[prot+i+2] == modetab[fun+i+2];
+			flag = modetab[prot + i*modifier + 2] == modetab[fun + i*modifier + 2];
         return flag;
     }
 }
@@ -1147,7 +1148,7 @@ int func_declarator(int level, int func_d, int firstdecl)
     
     while (repeat)
     {
-        if ((type = cur) == LINT || cur == LCHAR || cur == LFLOAT)
+        if ((type = cur) == LINT || cur == LCHAR || cur == LFLOAT) // TODO: аргумент типа структура
         {
             maybe_fun = 0;    // м.б. параметр-ф-ция? 0 - ничего не было, 1 - была *, 2 - была [
             ident = 0;        // = 0 - не было идента, 1 - был статический идент, 2 - был идент-параметр-функция
@@ -1274,26 +1275,27 @@ int func_declarator(int level, int func_d, int firstdecl)
     return modetab[startmode]+1;
 }
 
-void str_type_registration() // Регистрация структурного типа в modetab
+int str_type_registration(int has_name) // Регистрация структурного типа в modetab
 {
-	int field_count = 0;
-	int old = md-1;
-	lasttype = md;
-	modetab[md] = md; // Структура отличается от функции тем, что по ссылке хранится значение, равное индексу
-	reprtab[repr + 1] = md;
+	int field_count = 0, old;
+	modetab[md] = 0; // Структура отличается от функции тем, что по ссылке хранится значение, равное индексу
+	if (has_name)
+	{
+		reprtab[repr + 1] = md;
+	}	
 	md++;
-	int count_fields_index = md;
-	md++;
+	int count_fields_index = md++;
+	
 	if (next == BEGIN)
 	{
 		scaner();
 		while (next != END)
 		{
-			// надо сделать, чтобы можно было через запятую
-			int type = scaner();
+			// TODO: надо сделать, чтобы можно было через запятую и чтобы можно было структуры
+			type = scaner();
 			modetab[md++] = type;
 
-			int ident = scaner();
+			idorpnt(after_type_must_be_ident);
 			modetab[md++] = repr;
 			if (next == SEMICOLON)
 			{
@@ -1301,34 +1303,57 @@ void str_type_registration() // Регистрация структурного 
 			}
 			else
 			{
-				//error
+				//TODO: error
 			}
 			field_count++;
 		}
-		modetab[count_fields_index] = field_count;
-		modetab[md] = old;
-		md++;
 		scaner();
+
+		modetab[count_fields_index] = field_count;
+
+		old = modetab[startmode];
+		while (old)
+		{
+			if (modeeq(startmode + 1, old + 1))
+				break;
+			else
+				old = modetab[old];
+		}
+
+		if (old)
+		{
+			md = startmode + 1;
+			return old + 1;
+		}
+		else
+		{
+			modetab[md] = startmode;
+			startmode = md++;		
+			return modetab[startmode] + 1;
+		}		
 	}
 }
 
 void struct_eat()
 {
 	if (next == BEGIN) // регистрация структуры без имени
-	{
-		str_type_registration();
-		type = lasttype;
+	{	
+		type = str_type_registration(0);
 	}
 	else if (next == IDENT)
 	{
 		type = reprtab[repr + 1];
 		scaner();
 		if (next == BEGIN) // Это опреденение переменной типа структуры
-		{
-			str_type_registration();
-			type = lasttype;
+		{			
+			type = str_type_registration(1);
 		}
 	}
+	else
+	{
+		error(after_struct_must_be_ident_or_begin);
+	}
+
 	if (next == SEMICOLON)
 	{
 		scaner();
@@ -1348,10 +1373,13 @@ void ext_decl()
 		else if (type == LSTRUCT)
 		{
 			struct_eat();
-			scaner();
 			if (cur == SEMICOLON)
 			{
 				goto ex;
+			}
+			if (next == IDENT)
+			{
+				scaner();
 			}
 		}
         else

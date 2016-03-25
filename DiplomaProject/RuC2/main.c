@@ -21,7 +21,7 @@ float numfloat;
 int line=0, charnum=1, cur, next, next1, num, numr, hash, repr, keywordsnum,
 source[SOURCESIZE], lines[LINESSIZE];
 int nextchar, curchar, func_def;
-int hashtab[256], reprtab[MAXREPRTAB], rp = 1, identab[MAXIDENTAB], id = 2, modetab[MAXMODSIZE], md = 2, startmode = 1, lasttype = 0;
+int hashtab[256], reprtab[MAXREPRTAB], rp = 1, identab[MAXIDENTAB], id = 2, modetab[MAXMODSIZE], md = 2, startmode = 1;
 int stack[100], stackop[100], stackoperands[100], ansttype,
 sp=0, sopnd=-1, aux=0, lastid, curid = 2, lg=-1, displ=-2, maxdispl = 3, maxdisplg = 3, type, op, firstdecl, point;
 int instring = 0, inswitch = 0, inloop = 0, lexstr[MAXSTRINGL+1];
