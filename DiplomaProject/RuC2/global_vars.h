@@ -17,7 +17,8 @@ extern FILE *input;
 extern FILE *output;
 
 extern float numfloat;
-extern int line, charnum, cur, next, next1, num, numr, hash, repr, keywordsnum,
+extern int line, charnum, cur, next, next1, num, numr, hash, repr, keywordsnum, wasstructdef;
+extern int pntr,                               // важен при присваивании, означает тип левой части
 source[SOURCESIZE], lines[LINESSIZE];
 
 extern int nextchar, curchar, func_def;

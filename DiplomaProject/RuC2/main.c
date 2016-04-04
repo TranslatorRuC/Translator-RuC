@@ -5,7 +5,7 @@
 //
 // http://www.lysator.liu.se/c/ANSI-C-grammar-y.html
 #define _CRT_SECURE_NO_WARNINGS
-char* name = "C:/Users/GOD/Desktop/DiplomVsProject/DiplomaProject/Regress tests/sort.c";
+char* name = "C:/Users/GOD/Desktop/test/DiplomVsProject/DiplomaProject/Regress tests/sort.c";
 
 #include <stdio.h>
 #include <string.h>
@@ -18,14 +18,14 @@ char* name = "C:/Users/GOD/Desktop/DiplomVsProject/DiplomaProject/Regress tests/
 
 FILE *input, *output;
 float numfloat;
-int line=0, charnum=1, cur, next, next1, num, numr, hash, repr, keywordsnum,
-source[SOURCESIZE], lines[LINESSIZE];
+int line=0, charnum=1, cur, next, next1, num, numr, hash, repr, keywordsnum, wasstructdef = 0;
+int pntr = 0;                               // важен при присваивании, означает тип левой части
+int source[SOURCESIZE], lines[LINESSIZE];
 int nextchar, curchar, func_def;
 int hashtab[256], reprtab[MAXREPRTAB], rp = 1, identab[MAXIDENTAB], id = 2, modetab[MAXMODSIZE], md = 2, startmode = 1;
 int stack[100], stackop[100], stackoperands[100], ansttype,
 sp=0, sopnd=-1, aux=0, lastid, curid = 2, lg=-1, displ=-2, maxdispl = 3, maxdisplg = 3, type, op, firstdecl, point;
 int instring = 0, inswitch = 0, inloop = 0, lexstr[MAXSTRINGL+1];
-
 int tree[MAXTREESIZE], tc=0, mem[MAXMEMSIZE], pc=0, functions[FUNCSIZE], funcnum = 2, functype, kw = 0, blockflag = 1,
 entry, wasmain = 0, wasret, wasdefault, notrobot = 1;
 int adcont, adbreak, adcase;
@@ -58,11 +58,11 @@ int main()
     
     for (i=0; i<256; i++)
         hashtab[i] = 0;
-    output = fopen("C:/Users/GOD/Desktop/DiplomVsProject/DiplomaProject/tree.txt", "wt");
+    output = fopen("C:/Users/GOD/Desktop/test/DiplomVsProject/DiplomaProject/tree.txt", "wt");
     
 // занесение ключевых слов в reprtab
     keywordsnum = 1;
-    input =  fopen("C:/Users/GOD/Desktop/DiplomVsProject/DiplomaProject/keywords.txt", "r");
+    input =  fopen("C:/Users/GOD/Desktop/test/DiplomVsProject/DiplomaProject/keywords.txt", "r");
     getnext();
     nextch();
     while (scan() != LEOF)
@@ -72,7 +72,7 @@ int main()
     input =  fopen(name, "r");
     if (input == NULL)
     {
-        printf("file not found %s\n", name);
+        printf(" не найден файл %s\n", name);
         exit(1);
     }
     modetab[1] = 0;
@@ -91,7 +91,7 @@ int main()
     tablesandtree();
     fclose(output);
     
-    output = fopen("C:/Users/GOD/Desktop/DiplomVsProject/DiplomaProject/codes.txt", "wt");
+    output = fopen("C:/Users/GOD/Desktop/test/DiplomVsProject/DiplomaProject/codes.txt", "wt");
     
     codegen();
 
@@ -100,8 +100,8 @@ int main()
     fclose(input);
     fclose(output);
     
-    output = fopen("C:/Users/GOD/Desktop/DiplomVsProject/DiplomaProject/export.txt", "wt");
-    fprintf(output, "%i %i %i %i %i\n", pc, funcnum, id, rp, maxdisplg);
+    output = fopen("C:/Users/GOD/Desktop/test/DiplomVsProject/DiplomaProject/export.txt", "wt");
+    fprintf(output, "%i %i %i %i %i %i\n", pc, funcnum, id, rp, maxdisplg, wasmain);
     
     for (i=0; i<pc; i++)
     {

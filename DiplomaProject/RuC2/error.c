@@ -175,7 +175,7 @@ void error(int ernum)
             printf("в команде ПЕЧАТЬИД или ЧИТАТЬИД нет идентификатора\n");
             break;
         case float_in_switch:
-            printf("в условии переключателя нельзя использовать ВЕЩ\n");
+            printf("в условии переключателя можно использовать только типы ЛИТЕРА и ЦЕЛ\n");
             break;
         case init_int_by_float:
             printf("целая или литерная переменная инициализируется значением типа ВЕЩ\n");
@@ -310,18 +310,28 @@ void error(int ernum)
             printident(repr);
             printf("\n");
             break;
-		case after_struct_must_be_ident_or_begin:
-			printf("8После ключевого слова 'стркутура' должно быть имя типа структуры или описание полей");
-			printf("\n");
-			break;
-		case type_is_not_declared:
-			printf("9тип структуры не объявлен");
-			printf("\n");
-			break;
+        case wrong_pnt_assn:
+            printf("в присваивании указателей не совпадают типы\n");
+            break;
+        case comm_not_ended:
+            printf("комментарий, начавшийся с /* , не закрыт\n");
+            break;
+        case operand_is_pointer:
+            printf("операнд бинарной формулы не может быть указателем\n");
+            break;
+        case pointer_in_print:
+            printf("указатели нельзя печатать\n");
+            break;
+        case wrong_struct:
+            printf("неправильное описание структуры\n");
+            break;
+		case after_dot_must_be_ident:
+			printf("после точки должен быть идент\n");
+			break; 
 		case field_not_found:
-			printf("У структуры нет такого поля");
-			printf("\n");
+			printf("у структуры нет такого поля\n");
 			break;
+
             
         default: ;
     }

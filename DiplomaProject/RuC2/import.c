@@ -13,7 +13,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "global_vars.h"
+#include "Defs.h"
 
 #define I2CBUFFERSIZE 50
 
@@ -26,6 +26,11 @@
 #define wrong_ansensor_num  7
 #define wrong_robot_com     8
 #define wrong_number_of_elems 9
+
+int l, g, x, maxdisplg, wasmain;
+int reprtab[MAXREPRTAB], rp, identab[MAXIDENTAB], id;
+int mem[MAXMEMSIZE], pc, functions[FUNCSIZE], funcnum;
+float lf, rf;
 
 #ifdef ROBOT
 FILE *f1, *f2;   // файлы цифровых датчиков
@@ -91,7 +96,7 @@ void printident(int r)
 
 int dspl(int d)
 {
-    return d < 0 ? g-d : l+d;
+    return d < 0 ? g - d : l + d;
 }
 
 int dsp()
@@ -104,31 +109,31 @@ void runtimeerr(int e, int i, int r)
     switch (e)
     {
         case index_out_of_range:
-            printf("1индекс %i за пределами границ массива %i\n", i, r);
+            printf("индекс %i за пределами границ массива %i\n", i, r);
             break;
         case wrong_kop:
-            printf("2команду %i я пока не реализовал\n", i);
+            printf("команду %i я пока не реализовал\n", i);
             break;
         case wrong_arr_init:
-            printf("3массив с %i элементами инициализируется %i значениями\n", i, r);
+            printf("массив с %i элементами инициализируется %i значениями\n", i, r);
             break;
         case wrong_motor_num:
-            printf("4номер силового мотора %i, а должен быть от 1 до 4\n", i);
+            printf("номер силового мотора %i, а должен быть от 1 до 4\n", i);
             break;
         case wrong_motor_pow:
-            printf("5задаваемая мощность мотора %i равна %i, а должна быть от -100 до 100\n", i, r);
+            printf("задаваемая мощность мотора %i равна %i, а должна быть от -100 до 100\n", i, r);
             break;
         case wrong_digsensor_num:
-            printf("6номер цифрового сенсора %i, а должен быть 1 или 2\n", i);
+            printf("номер цифрового сенсора %i, а должен быть 1 или 2\n", i);
             break;
         case wrong_ansensor_num:
-            printf("7номер аналогового сенсора %i, а должен быть от 1 до 6\n", i);
+            printf("номер аналогового сенсора %i, а должен быть от 1 до 6\n", i);
             break;
         case wrong_robot_com:
-            printf("8робот не может исполнить команду\n");
+            printf("робот не может исполнить команду\n");
             break;
         case wrong_number_of_elems:
-            printf("9количиство элементов в массиве по каждому измерению должно быть положительным, а тут %i", r);
+            printf("количиство элементов в массиве по каждому измерению должно быть положительным, а тут %i", r);
             
             
         default:
@@ -207,7 +212,7 @@ int auxgt(int *r, int t)
         else if(t == ROWOFFLOAT)
         {
             scanf(" %f", &rf);
-            memcpy(&mem[*r+j], &rf, sizeof(num));
+            memcpy(&mem[*r+j], &rf, 4);
         }
         else
             flag = 1;
@@ -245,7 +250,6 @@ void import()
     FILE *input;
     int i,r, n, flagstop = 1, entry, num;
     float lf, rf;
-    char i2ccommand[I2CBUFFERSIZE];
     
 #ifdef ROBOT
     f1 = fopen(JD1, "r");                       // файлы цифровых датчиков
@@ -257,9 +261,9 @@ void import()
     system("i2cset -y 2 0x48 0x13 0x1000 w");
 #endif
     
-    input = fopen("C:/Users/GOD/Desktop/DiplomVsProject/DiplomaProject/export.txt", "r");
+    input = fopen("C:/Users/GOD/Desktop/test/DiplomVsProject/DiplomaProject/export.txt", "r");
     
-    fscanf(input, "%i %i %i %i %i\n", &pc, &funcnum, &id, &rp, &maxdisplg);
+    fscanf(input, "%i %i %i %i %i %i\n", &pc, &funcnum, &id, &rp, &maxdisplg, &wasmain);
 
     for (i=0; i<pc; i++)
     {

@@ -113,8 +113,6 @@
 
 #define UNMINUS   49
 
-#define ANDADDR   50
-#define MULTADDR  51
 #define LNOT      52
 #define LOGNOT    53
 
@@ -231,8 +229,8 @@
 #define LAPOST    118
 #define LQUOTE    119
 #define LEOF      120
-#define DOT       121
-#define ARROW     122
+#define ARROW     121
+#define DOT       122
 
 // Ответы
 
@@ -255,10 +253,25 @@
 #define ROWROWOFCHAR  -16
 #define ROWROWOFFLOAT -17
 
+#define LAINT   -21           //  указатели (*)
+#define LACHAR  -22
+#define LAFLOAT -23
+
+#define ROWOFAINT   -25
+#define ROWOFACHAR  -26
+#define ROWOFAFLOAT -27
+#define ROWROWOFAINT   -35
+#define ROWROWOFACHAR  -36
+#define ROWROWOFAFLOAT -37
+
 #define FUNCINT    -9
 #define FUNCCHAR  -10
 #define FUNCFLOAT -11
 #define FUNCVOID  -12
+
+#define FUNCAINT    -29       // функции, выдающие указатели
+#define FUNCACHAR   -30
+#define FUNCAFLOAT  -31
 
 #define LBREAK -5
 #define LCASE  -6
@@ -266,30 +279,32 @@
 #define LDEFAULT  -8
 #define LDO    -9
 #define LELSE  -10
-#define LENUM   -11
+#define LENUM  -11
 #define LSTRUCT -12
-#define LFOR    -13
-#define LGOTO   -14
-#define LIF     -15
-#define LRETURN -16
-#define LSIZEOF -17
-#define LSWITCH -18
-#define LWHILE  -19
-#define PRINTID -20
-#define PRINT   -21
-#define GETID   -22
-#define SETMOTOR  -23
-#define SLEEP     -24     // до этого места операторы, а затем функции
-#define GETDIGSENSOR -25
-#define GETANSENSOR -26
-#define ABS      -27
-#define SQRT     -28
-#define EXP      -29
-#define SIN      -30
-#define COS      -31
-#define LOG      -32
-#define LOG10    -33
-#define ASIN     -34
+#define LTYPEDEF -13
+#define LFOR   -14
+#define LGOTO  -15
+#define LIF    -16
+#define LRETURN -17
+#define LSIZEOF -18
+#define LSWITCH -19
+#define LWHILE  -20
+#define PRINTID -21
+#define PRINT   -22
+#define GETID   -23
+#define SETMOTOR  -24
+#define SLEEP     -25     // до этого места операторы, а затем функции
+#define GETDIGSENSOR -26
+#define GETANSENSOR -27
+#define ABS      -28
+#define SQRT     -29
+#define EXP      -30
+#define SIN      -31
+#define COS      -32
+#define LOG      -33
+#define LOG10    -34
+#define ASIN     -35
+
 
 // Узлы дерева
 #define TIdent      -300
@@ -301,7 +316,6 @@
 #define TAddrtoval  -306
 #define TCall1      -307
 #define TCall2      -308
-
 #define TFuncdef    -309
 #define TDeclid     -310
 #define TInit       -311
@@ -325,7 +339,8 @@
 #define TPrint      -329
 #define TPrintid    -330
 #define TGetid      -331
-#define TStructFld  -332
+#define TIdenttoaddr -332
+#define TStructFld  -333
 
 // Коды ошибок
 
@@ -424,9 +439,13 @@
 #define must_be_digit_after_exp            293
 #define label_not_declared                 294
 #define repeated_label                     295
-//struct errors
-#define after_struct_must_be_ident_or_begin 296
-#define type_is_not_declared               297
-#define field_not_found                    298
+#define wrong_pnt_assn                     296
+#define comm_not_ended                     297
+#define operand_is_pointer                 298
+#define pointer_in_print                   299
+#define wrong_struct                       300
+#define after_dot_must_be_ident            301
+#define field_not_found                    302
+
 
 #endif

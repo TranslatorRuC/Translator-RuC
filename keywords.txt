@@ -11,6 +11,7 @@ DO do ЦИКЛ цикл
 ELSE else ИНАЧЕ иначе
 ENUM enum ПЕРЕЧЕНЬ перечень
 STRUCT struct СТРУКТУРА структура
+TYPEDEF typedef ОПРТИПА опртипа
 FOR for ДЛЯ для
 GOTO goto ПЕРЕХОД переход
 IF if ЕСЛИ если

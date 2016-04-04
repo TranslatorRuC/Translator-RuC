@@ -10,7 +10,7 @@ extern void error(int err);
 
 void tocode(int c)
 {
-//    printf("pc %i) %i\n", pc, c);
+//    printf("tc=%i pc %i) %i\n", tc, pc, c);
     mem[pc++] = c;
 }
 
@@ -24,9 +24,19 @@ void adbreakend()
     }
 }
 
+void adcontbeg(int ad)
+{
+    while (adcont != ad)
+    {
+        int r = mem[adcont];
+        mem[adcont] = ad;
+        adcont = r;
+    }
+}
+
 void adcontend()
 {
-    while (adcont)
+    while (adcont != 0)
     {
         int r = mem[adcont];
         mem[adcont] = pc;
@@ -34,28 +44,56 @@ void adcontend()
     }
 }
 
+void finalop()
+{
+    int c;
+    while ((c = tree[tc]) > 0)
+    {
+        tc++;
+        if (c != NOP)
+        {
+            tocode(c);
+            if ((c >= ASS && c <= DIVASS) || (c >= ASSV && c <= DIVASSV) ||
+                (c >= PLUSASSR && c <= DIVASSR) || (c >= PLUSASSRV && c <= DIVASSRV) ||
+                (c >= POSTINC && c <= DEC) || (c >= POSTINCV && c <= DECV) ||
+                (c >= POSTINCR && c <= DECR) || (c >= POSTINCRV && c <= DECRV))
+            {
+                tocode(identab[- tree[tc++] + 3]);
+            }
+        }
+    }
+
+}
 
 void Expr_gen(int adfi)
 {
-    int flagprim = 1, c;
+    int flagprim = 1;
     while (flagprim)
     {
-        switch (tree[tc])
+        switch (tree[tc++])
         {
             case TIdent:
             {
-                tc++;
                 lastid = tree[tc++];
                 anstdispl = identab[lastid+3];
             }
                 break;
                 
-            case TIdenttoval:
+            case TIdenttoaddr:
             {
-                tc++;
                 lastid = tree[tc++];
                 anstdispl = identab[lastid+3];
-				if (identab[lastid + 2] > 0)
+                tocode(LA);
+                tocode(anstdispl);
+            }
+                break;
+                
+            case TIdenttoval:
+            {
+                lastid = tree[tc++];
+                anstdispl = identab[lastid+3];
+//                printf("lastid=%i anstdispl=%i idtab= %i\n", lastid, anstdispl, identab[lastid+2]);
+                if (identab[lastid+2] > 0)
                 {
                     if (anstdispl > 0)
                     {
@@ -70,22 +108,20 @@ void Expr_gen(int adfi)
                 }
                 else
                 {
-                tocode(LOAD);
-                tocode(anstdispl);
+                    tocode(LOAD);
+                    tocode(anstdispl);
                 }
             }
                 break;
 
             case TAddrtoval:
             {
-                tc++;
                 tocode(LAT);
             }
                 break;
                 
             case TConst:
             {
-                tc++;
                 tocode(LI);
                 tocode(tree[tc++]);
             }
@@ -93,7 +129,6 @@ void Expr_gen(int adfi)
                 
             case TString:
             {
-                tc++;
                 int n = -1, res;
                 tocode(LI);
                 tocode(res = pc+4);
@@ -110,7 +145,7 @@ void Expr_gen(int adfi)
                 
             case TSliceident:
             {
-                int displ = identab[tree[++tc] + 3];
+                int displ = identab[tree[tc] + 3];
                 tc++;
                 tocode(LOAD);
                 tocode(displ);
@@ -121,7 +156,7 @@ void Expr_gen(int adfi)
 
 			case TStructFld:
 			{
-				int displ = identab[tree[++tc] + 3];
+				int displ = identab[tree[tc] + 3];
 				tc++;
 				tocode(LOAD);
 				tocode(displ);
@@ -131,7 +166,6 @@ void Expr_gen(int adfi)
                 
             case TSlice:
             {
-                tc++;
                 tocode(LAT);
 //                Expr_gen(0);
                 tocode(SLICE);
@@ -140,7 +174,7 @@ void Expr_gen(int adfi)
                 
             case TCall1:
             {
-                int i, n = tree[++tc];
+                int i, n = tree[tc];
                 tc++;
                 tocode(CALL1);
                 for (i=0; i < n; i++)
@@ -150,31 +184,17 @@ void Expr_gen(int adfi)
                 
             case TCall2:
             {
-                tc++;
                 tocode(CALL2);
                 tocode(identab[-tree[tc++]+3]);
             }
                 break;
+                
+            default:
+                tc--;
         }
         
-        while ((c = tree[tc]) > 0)
-        {
-            tc++;
-            if (c != NOP)
-            {
-                tocode(c);
-
-                if ((c >= ASS && c <= DIVASS) || (c >= ASSV && c <= DIVASSV) ||
-                    (c >= PLUSASSR && c <= DIVASSR) || (c >= PLUSASSRV && c <= DIVASSRV) ||
-                    (c >= POSTINC && c <= DEC) || (c >= POSTINCV && c <= DECV) ||
-                    (c >= POSTINCR && c <= DECR) || (c >= POSTINCRV && c <= DECRV))
-                {
-                    tocode(identab[- tree[tc++] + 3]);
-                }
- 
-            }
-        }
         
+        finalop();
         if (tree[tc] == TCondexpr)
         {
             int adelse, ad;
@@ -198,21 +218,7 @@ void Expr_gen(int adfi)
             if (adfi)
                 return;
         }
-            while ((c = tree[tc]) > 0)
-            {
-                tc++;
-                if (c != NOP)
-                {
-                    tocode(c);
-                    if ((c >= ASS && c <= DIVASS) || (c >= ASSV && c <= DIVASSV) ||
-                        (c >= PLUSASSR && c <= DIVASSR) || (c >= PLUSASSRV && c <= DIVASSRV) ||
-                        (c >= POSTINC && c <= DEC) || (c >= POSTINCV && c <= DECV) ||
-                        (c >= POSTINCR && c <= DECR) || (c >= POSTINCRV && c <= DECRV))
-                    {
-                        tocode(identab[- tree[tc++] + 3]);
-                    }
-                }
-            }
+        finalop();
         
         if (tree[tc] == TExprend)
         {
@@ -256,13 +262,13 @@ void Stmt_gen()
         {
             int doref = tree[tc++];
             int oldbreak = adbreak, oldcont = adcont, ad = pc;
-            adcont = 0;
+            adcont = ad;
             Expr_gen(0);
             tocode(BE0);
             mem[pc] = 0;
             adbreak = pc++;
             Stmt_gen();
-            adcontend();
+            adcontbeg(ad);
             tocode(B);
             tocode(ad);
             adbreakend();
@@ -275,8 +281,7 @@ void Stmt_gen()
         {
             int condref = tree[tc++];
             int oldbreak = adbreak, oldcont = adcont, ad = pc;
-            adbreak = 0;
-            adcont = 0;
+            adcont = adbreak = 0;
             Stmt_gen();
             adcontend();
             Expr_gen(0);
@@ -292,12 +297,12 @@ void Stmt_gen()
         {
             int fromref = tree[tc++], condref = tree[tc++], incrref = tree[tc++], stmtref = tree[tc++];
             int oldbreak = adbreak, oldcont = adcont, ad = pc, incrtc, endtc;
-            adcont = 0;
             if (fromref)
             {
                 Expr_gen(0);         // init
             }
-            ad = pc;
+            adbreak = 0;
+            adcont = ad = pc;
             if (condref)
             {
                 Expr_gen(0);         // cond
@@ -308,7 +313,6 @@ void Stmt_gen()
             incrtc = tc;
             tc = stmtref;
             Stmt_gen();             //  ???? был 0
-            adcontend();
             if (incrref)
             {
                 endtc = tc;
@@ -316,6 +320,7 @@ void Stmt_gen()
                 Expr_gen(0);         // incr
                 tc = endtc;
             }
+            adcontbeg(ad);
             tocode(B);
             tocode(ad);
             adbreakend();
@@ -385,6 +390,7 @@ void Stmt_gen()
         {
             if (adcase)
                 mem[adcase] = pc;
+            adcase = 0;
             Stmt_gen();
         }
             break;
@@ -452,13 +458,13 @@ void Declid_gen()
 {
     int identref = tree[tc++], initref = tree[tc++], N = tree[tc++];
     int olddispl = identab[identref+3], i;
-	int type = identab[identref + 2];
+	int t = identab[identref + 2];	
     if (N == 0)
     {
-		if (type > 0)
+		if (t > 0)
 		{
 			tocode(LI);
-			tocode(modetab[type+1]);
+			tocode(modetab[t + 1]);
 			tocode(DEFSTRUCTID);
 			tocode(olddispl);
 		}
@@ -561,4 +567,5 @@ void codegen()
     tocode(CALL2);
     tocode(identab[wasmain+3]);
     tocode(STOP);
+
 }

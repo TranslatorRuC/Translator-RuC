@@ -37,10 +37,6 @@ void tablesandtree()
         fprintf(output, "\n");
         i +=4;
     }
-
-	fprintf(output, "\n%s\n", "reprtab");
-	for (i = 1165; i <= rp; i++)
-		fprintf(output, "rp %i) %i\n", i, reprtab[i]);
     
     fprintf(output, "\n%s\n", "functions");
     for (i=1; i<=funcnum; i++)
@@ -60,7 +56,7 @@ void tablesandtree()
         switch (tree[i++])
         {
             case TFuncdef:
-                fprintf(output, "TFuncdef %i %i\n", tree[i++], tree[i++]);
+                fprintf(output, "\nTFuncdef %i %i\n", tree[i++], tree[i++]);
                 break;
             case TDeclid:
                 fprintf(output, "TDeclid %i %i %i\n", tree[i++], tree[i++], tree[i++]);
@@ -109,10 +105,7 @@ void tablesandtree()
                 break;
             case TReturnval:
                 fprintf(output, "TReturnval \n");
-				break;
-			case TStructFld:
-				fprintf(output, "TStructFld %i\n", tree[i++]);
-				break;
+                break;
             case TGoto:
                 fprintf(output, "TGoto %i\n", tree[i++]);
                 break;
@@ -121,6 +114,9 @@ void tablesandtree()
                 break;
             case TIdenttoval:
                 fprintf(output, "TIdenttoval %i\n", tree[i++]);
+                break;
+            case TIdenttoaddr:
+                fprintf(output, "TIdenttoaddr %i\n", tree[i++]);
                 break;
             case TAddrtoval:
                 fprintf(output, "TAddrtoval\n");
@@ -185,7 +181,7 @@ void tablesandcode()
         }
     }
     fprintf(output, "\n");
-	
+/*
     fprintf(output, "\n%s\n", "identab");
     i = 2;
     while (i < id)
@@ -203,7 +199,7 @@ void tablesandcode()
     fprintf(output, "\n%s\n", "modetab");
     for (i=0; i<md; i++)
         fprintf(output, "md %i) %i\n", i, modetab[i]);
-    
+*/    
     fprintf(output, "%s\n", "mem");
     i = 0;
     while (i < pc)
@@ -266,10 +262,6 @@ void tablesandcode()
             case DECX:
                 fprintf(output, "DECX\n");
                 break;
-			case DEFSTRUCTID:
-				fprintf(output, "DEFSTRUCTID ");
-				fprintf(output, "%i\n", mem[i++]);
-				break;
             case DEFARR:
                 fprintf(output, "DEFARR ");
                 fprintf(output, "%i\n", mem[i++]);
@@ -644,9 +636,6 @@ void tablesandcode()
             case SLICE:
                 fprintf(output, "SLICE\n");
                 break;
-			case DOT:
-				fprintf(output, "DOT\n");
-				break;
             case ASSARR:
                 fprintf(output, "ASSARR ");
                 fprintf(output, "%i ", mem[i++]);
@@ -680,7 +669,7 @@ void tablesandcode()
                 break;
                 
             case FUNCBEG:
-                fprintf(output, "FUNCBEG ");
+                fprintf(output, "\nFUNCBEG ");
                 fprintf(output, "%i ", mem[i++]);
                 fprintf(output, "%i\n", mem[i++]);
                 break;
@@ -764,10 +753,6 @@ void cd(int pcl)
                 printf("DEFARR ");
                 printf("%i\n", mem[i++]);
                 break;
-			case DEFSTRUCTID:
-				printf("DEFSTRUCTID ");
-				printf("%i\n", mem[i++]);
-				break;
             case DEFARR2:
                 printf("DEFARR2 ");
                 printf("%i\n", mem[i++]);

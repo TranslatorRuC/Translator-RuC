@@ -58,7 +58,8 @@ void endofline()
     int j;
     printf("line %i) ", line-1);
     for (j=lines[line-1]; j<lines[line]; j++)
-        printf_char(source[j]);
+        if (source[j] != EOF)
+            printf_char(source[j]);
 }
 
 void endnl()
@@ -71,7 +72,7 @@ void endnl()
     }
 }
 
-int nextch()
+void nextch()
 {
     onemore();
     if (curchar == EOF)
@@ -84,26 +85,33 @@ int nextch()
             endofline();
             printf("\n");
         }
-        return EOF;
+        return;
     }
     
     source[charnum++] = curchar;
     if (instring)
-        return curchar;
-    //Обработка комментариев    
+        return;
+        
     if (curchar == '/' && nextchar == '/')
     {
         do
         {
             onemore();
             source[charnum++] = curchar;
+            if (curchar == EOF)
+            {
+                endnl();
+                printf("\n");
+                return;
+            }
         }
-        while (curchar != '\n'); // что это?
+        while (curchar != '\n');
+        
         endnl();
         source[charnum++] = curchar;
-        return curchar = ' ';
+        return;
     }
-    //обработка межстрочного комментария
+    
     if (curchar == '/' && nextchar == '*')
     {
         onemore();
@@ -112,19 +120,25 @@ int nextch()
         {
             onemore();
             source[charnum++] = curchar;
+            if (curchar == EOF)
+            {
+                endnl();
+                printf("\n");
+                error(comm_not_ended);
+            }
             if (curchar == '\n')
                 endnl();
         }
         while (curchar != '*' || nextchar != '/');
+        
         onemore();
         source[charnum++] = curchar;
-        onemore();
-        source[charnum++] = curchar;
-        return curchar = ' ';
+        curchar = ' ';
+        return;
     }
     if (curchar == '\n')
         endnl();
-    return curchar;
+    return;
 }
 
 void next_string_elem()
@@ -263,11 +277,11 @@ int scan()
                 nextch();
                 cr = DEC;
             }
-			else if (curchar == '>')
-			{
-				nextch();
-				cr = ARROW;
-			}
+            else if (curchar == '>')
+            {
+                nextch();
+                cr = ARROW;
+            }
             else
                 cr = LMINUS;
             return cr;
@@ -454,12 +468,12 @@ int scan()
             nextch();
             return COLON;
         }
-		case '.':
-		{
-			nextch();
-			return DOT;
-		}
-            
+        case '.':
+            if (nextchar < '0' || nextchar > '9')
+            {
+                nextch();
+                return DOT;
+            }
         case '0':
         case '1':
         case '2':
