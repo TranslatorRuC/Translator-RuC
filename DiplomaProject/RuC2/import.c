@@ -389,10 +389,6 @@ void import()
             case DECX:
                 x--;
                 break;
-			case DEFSTRUCTID:
-				mem[dsp()] = x + 1;
-				x += mem[x];
-				break;
             case DEFARR:
                 if (mem[x] <= 0)
                     runtimeerr(wrong_number_of_elems, 0, mem[x]);
@@ -471,9 +467,9 @@ void import()
             case BNE0:
                 pc = (mem[x--]) ? mem[pc] : pc + 1;
                 break;
-			case DOT:
-				i = mem[x--];   // index of str field
-				r = mem[x];     // struct ident
+			case SELECTID:
+				i = mem[x--];   // field displ
+				r = mem[x];     // ident displ
 				mem[x] = r + i;
 				break;
             case SLICE:
@@ -565,8 +561,7 @@ void import()
             case DIVASS:
                 r = mem[dsp()] /= mem[x];
                 mem[x] = r;
-                break;
-                
+                break;               
             case ASSV:
                 mem[dsp()] = mem[x--];
                 break;

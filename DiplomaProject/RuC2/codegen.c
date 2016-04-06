@@ -153,16 +153,6 @@ void Expr_gen(int adfi)
                 tocode(SLICE);
             }
                 break;
-
-			case TStructFld:
-			{
-				int displ = identab[tree[tc] + 3];
-				tc++;
-				tocode(LOAD);
-				tocode(displ);
-				Expr_gen(0);
-			}
-				break;
                 
             case TSlice:
             {
@@ -171,6 +161,18 @@ void Expr_gen(int adfi)
                 tocode(SLICE);
             }
                 break;
+
+			case TSelectId:
+			{
+				int id_displ = identab[tree[tc++] + 3];
+				int field_displ = tree[tc++];			
+				tocode(LA);
+				tocode(id_displ);
+				tocode(LI);
+				tocode(field_displ);
+				tocode(SELECTID);
+			}
+				break;
                 
             case TCall1:
             {
@@ -192,7 +194,6 @@ void Expr_gen(int adfi)
             default:
                 tc--;
         }
-        
         
         finalop();
         if (tree[tc] == TCondexpr)
@@ -461,18 +462,20 @@ void Declid_gen()
 	int t = identab[identref + 2];	
     if (N == 0)
     {
-		if (t > 0)
-		{
-			tocode(LI);
-			tocode(modetab[t + 1]);
-			tocode(DEFSTRUCTID);
-			tocode(olddispl);
-		}
         if (initref)
         {
-            Expr_gen(0);
-            tocode(ASSV);
-            tocode(olddispl);
+			if (t > 0) // инициализация структуры
+			{
+				int L = tree[tc++];
+				for (i = 0; i<L; i++)
+					Expr_gen(0);
+			}
+			else
+			{
+				Expr_gen(0);
+				tocode(ASSV);
+				tocode(olddispl);
+			}            
         }
     }
     else if (N == 1)

@@ -19,6 +19,12 @@
 #define LINESSIZE  3000
 #define MAXSTRINGL 128
 
+// modetab 
+#define MFUNCTION 1001
+#define MSTRUCT   1002
+#define MARRAY    1003
+#define MPOINT    1004
+
 // Лексемы операций языка С
 
 #define ASS        1
@@ -194,7 +200,7 @@
 #define DOUBLE  173
 #define DEFARR2 174
 #define ASSARR2 175
-#define DEFSTRUCTID 176
+#define SELECTID 176
 
 // Коды операций стандартных функций
 
@@ -340,7 +346,7 @@
 #define TPrintid    -330
 #define TGetid      -331
 #define TIdenttoaddr -332
-#define TStructFld  -333
+#define TSelectId     -333
 
 // Коды ошибок
 
@@ -446,6 +452,7 @@
 #define wrong_struct                       300
 #define after_dot_must_be_ident            301
 #define field_not_found                    302
+#define get_field_not_from_struct          303
 
 
 #endif

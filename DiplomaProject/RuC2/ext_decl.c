@@ -59,7 +59,7 @@ int toidentab(int f)                 // f=0, если не ф-ция, f=1, ес�
         identab[id+3] = 1;                     // это описание типа
     else if (f)
     {
-            if (f < 0)
+            if (f < 0)  // сюда никогда не придем!
             {
                 identab[id+3] = -(++displ);
                 maxdispl = (displ > maxdispl) ? displ : maxdispl;
@@ -74,8 +74,10 @@ int toidentab(int f)                 // f=0, если не ф-ция, f=1, ес�
     }
     else
     {
-        identab[id+3] = displ += lg;            // смещение от l (полож) или от g (отриц), для меток - значение pc, для функций - номер
-        
+        identab[id+3] = displ + lg;            // смещение от l (полож) или от g (отриц), для меток - значение pc, для функций - номер
+
+		displ += type > 0 && modetab[type] == MSTRUCT ? modetab[type + 3] * (lg) : lg; // для структур выделяем больше места
+
         if (lg < 0)
             maxdisplg = -displ;
         else
@@ -133,7 +135,6 @@ void applid()
     lastid = reprtab[repr+1];
     if (lastid == 1)
         error(ident_is_not_declared);
-
 }
 
 void primaryexpr()
@@ -224,6 +225,7 @@ void postexpr()
     leftanst = anst;
     lid = lastid;
     leftansttype = ansttype;
+
     if (next == LEFTSQBR)
     {
         if  (ansttype != ROWOFINT && ansttype != ROWOFCHAR && ansttype != ROWOFFLOAT &&
@@ -270,11 +272,11 @@ void postexpr()
          if (identab[lid+1] < 0)
              error(declarator_in_call);
          
-         n = modetab[leftansttype+1];
+         n = modetab[leftansttype+2];
          
          totree(TCall1);
          totree(n);
-         j = leftansttype + 2;
+         j = leftansttype + 3;
          for (i=0; i<n; i++)
          {
              int mdj = modetab[j];  // это вид формального параметра, в ansttype будет вид фактического параметра
@@ -315,38 +317,38 @@ void postexpr()
      }
 	 else if (next == DOT || next == ARROW)
 	 {
-		 int needed_field_num, currtype, num_of_fields, repr_field;
-		 op = scaner();
-		 if (scaner() != IDENT)
-		     error(after_dot_must_be_ident);
-
-		 repr_field = repr;
-		 needed_field_num = -1;
-		 currtype = identab[lastid + 2];
-		 num_of_fields = modetab[currtype + 1];
-
-		 for (int i = 0; i < num_of_fields; i++)
+		 int select_displ = 0, field_type;
+		 while (next == DOT || next == ARROW)
 		 {
-			 if (modetab[currtype + 3 + i * 2] == repr_field)
-		     {
-				 needed_field_num = i;
-				 ansttype = modetab[currtype + 2 + i * 2];
-				 break;
+			 int needed_field_num = -1, num_of_fields, repr_field;
+			 op = scaner();
+			 mustbe(IDENT, after_dot_must_be_ident);
+
+			 if (modetab[ansttype] != MSTRUCT)
+				 error(get_field_not_from_struct);
+
+			 num_of_fields = modetab[ansttype + 4] / 2;
+
+			 for (int i = 0; i < num_of_fields; i++)
+			 {
+				 field_type = modetab[ansttype + 5 + i * 2];
+				 if (modetab[ansttype + 6 + i * 2] == repr)
+				 {
+					 needed_field_num = i;
+					 ansttype = field_type;
+					 break;
+				 }
+				 else
+				 {
+					 select_displ += modetab[field_type] == MSTRUCT ? modetab[field_type + 3] : 1; // прибавляем к суммарному смещению длину типа
+				 }		 
 			 }
 		 }
-
-		 if (needed_field_num == -1)
-			 error(field_not_found);
-
-		 totree(TStructFld);
-		 totree(lid);
-		 totree(TConst);
-		 totree(needed_field_num);
-		 totree(op);
-		 totree(TExprend);
-		 anst = op == DOT ? VAL : ADDR;
+		 tree[tc - 2] = TSelectId;
+		 totree(select_displ);
+		 anst = ADDR;
 	 }
-     else if (ansttype > 0)
+     else if (ansttype > 0 && modetab[ansttype] == MFUNCTION)
         error(func_not_in_call);
     
      if (next == INC || next == DEC)
@@ -634,8 +636,9 @@ int arrinit(int decl_type)
 
 void decl_id()
 {
+	int decl_type = type;
     int oldid = toidentab(0);
-    int decl_type = type;
+    
     int initref, n, ni;     // n - размерность (0-скаляр), д.б. столько выражений-границ, инициализатор начинается с L  
     totree(TDeclid);
     totree(oldid);
@@ -970,7 +973,7 @@ void statement()
                 break;
             case LRETURN:
             {
-                int ftype = modetab[functype];
+                int ftype = modetab[functype+1];
                 wasret = 1;
                 if (next == SEMICOLON)
                 {
@@ -1044,36 +1047,11 @@ void idorpnt(int e)
     mustbe(IDENT, e);
 }
 
-int type_registration()
+// проверяет, имеется ли в modetab только что внесенный тип.
+// если да, то возвращает ссылку на старую запись, иначе - на новую.
+int check_duplicates()
 {
-	int field_count = 0, old, i, t;
-	int loc_modetab[100], locmd = 0;
-	loc_modetab[locmd++] = 0; // Структура отличается от функции тем, что по ссылке хранится значение, равное индексу
-	locmd++;
-
-	scaner();
-	while (next != END)
-	{
-		t = gettype();
-		do
-		{
-			idorpnt(wait_ident_after_comma_in_decl);
-			loc_modetab[locmd++] = t;
-			loc_modetab[locmd++] = repr;
-			field_count++;
-		} while (scaner() == COMMA);
-	    
-		if (cur != SEMICOLON)
-			error(def_must_end_with_semicomma);
-	}
-
-	scaner();
-	loc_modetab[1] = field_count;
-
-	for (i = 0; i < locmd; i++)
-		modetab[md++] = loc_modetab[i];
-
-	old = modetab[startmode];
+	int old = modetab[startmode];
 	while (old)
 	{
 		if (modeeq(startmode + 1, old + 1))
@@ -1095,14 +1073,95 @@ int type_registration()
 	}
 }
 
+int get_type_len(int t)
+{
+	int len = 0, i;
+	if (t < 0 || modetab[t] != MSTRUCT)
+		return 1; 
+	
+	int fields_count = modetab[t + 4] / 2;
+	for (i = 0; i < fields_count; i++)
+	{
+		len += get_type_len(modetab[t + 5 + i * 2]);
+	}
+	return len;
+}
+
+int get_pointer_type(int t)
+{
+	int pointer_ref = modetab[t + 2];
+	if (pointer_ref == MPOINT)
+		return pointer_ref;
+
+	int result_type = md;
+	modetab[md] = MPOINT;
+	modetab[md++] = 0; // ссылка на массив
+	modetab[md++] = 0; // ссылка на указатель
+	modetab[md++] = t; // ссылка на элемент
+	return result_type;
+}
+
+int get_array_type(int t)
+{
+	int array_ref = modetab[t + 2];
+	if (array_ref == MARRAY)
+		return array_ref;
+
+	int result_type = md;
+	modetab[md] = MARRAY;
+	modetab[md++] = 0; // ссылка на массив
+	modetab[md++] = t; // ссылка на элемент
+	return result_type;
+}
+
+int struct_decl_list()
+{
+	int field_count = 0, oldmd, i, t;
+	int loc_modetab[100], locmd = 5;
+	loc_modetab[0] = MSTRUCT; // У структуры тут 1.
+	loc_modetab[1] = loc_modetab[2] = 0; //Ссылка на массив этого типа и на указатель этого типа.
+
+	scaner();
+	while (next != END)
+	{
+		t = gettype();
+		do
+		{
+			idorpnt(wait_ident_after_comma_in_decl);
+			loc_modetab[locmd++] = t;
+			loc_modetab[locmd++] = repr;
+			field_count++;
+		} while (scaner() == COMMA);
+	    
+		if (cur != SEMICOLON)
+			error(def_must_end_with_semicomma);
+	}
+	scaner();
+
+	loc_modetab[3] = 0;
+	loc_modetab[4] = field_count * 2;
+
+	oldmd = md;
+	for (i = 0; i < locmd; i++)
+		modetab[md++] = loc_modetab[i];
+
+	modetab[oldmd + 3] = get_type_len(oldmd);
+
+	return check_duplicates();
+}
+
+// gettype() выедает тип вместе со *(в случае указателей)
+// при этом, если такого типа нет в modetab, тип туда заносится;
+// возвращает отрицательное число(базовый тип) или положительное (ссылка на modetab)
 int gettype()
 {
+	int result_type;
     if((type = scaner()) == LINT || type == LFLOAT || type == LCHAR || type == LVOID)
-        return type;
+		result_type =  type;
     else if (type == LSTRUCT)
     {
         if (next == BEGIN)             // struct {
-            return type_registration();
+			result_type = struct_decl_list();
         else if (next == IDENT)
         {
 			int l = reprtab[repr + 1];
@@ -1113,18 +1172,24 @@ int gettype()
 				wasstructdef = 1;
                 toidentab(-2);
                 lid = lastid;
-                return identab[lid+2] = type_registration();
+				result_type = identab[lid + 2] = struct_decl_list();
             }
             else
             {                           // struct key
 				if (l == 1)
 					error(ident_is_not_declared);
-				return identab[l + 2];
+				result_type = identab[l + 2];
             }
         }
-        error(wrong_struct);
+		else 
+			error(wrong_struct);
     }
-    return 0;
+	while (next == LMULT)
+	{
+		scaner();
+		result_type = get_pointer_type(result_type);
+	}
+	return result_type;
 }
 
 void block(int b)
@@ -1198,27 +1263,31 @@ void block(int b)
     totree(TEnd);
 }
 
-int modeeq(int prot, int fun)
+int modeeq(int first_mode, int second_mode)
 {
-    int n = modetab[prot+1], i, flag = 1;
-//    printf("modeeq prot=%i fun=%i n=%i\n", prot, fun, n);
-    if (modetab[prot] != modetab[fun] || n != modetab[fun+1])
-        return 0;
-    else
-    {
-		int modefier = modetab[prot] == 0 ? 2 : 1;
-        for (i=0; i<n && flag ; i++)
-			flag = modetab[prot + i*modefier + 2] == modetab[fun + i * modefier + 2];
-        return flag;
-    }
+	int n, i, flag = 1, mode;
+	if (modetab[first_mode] != modetab[second_mode])
+		return 0;
+
+	mode = modetab[first_mode];
+	n = mode == MARRAY    ? 2 :
+		mode == MPOINT    ? 3 :
+		mode == MSTRUCT   ? 4 + modetab[first_mode + 4] : 
+		mode == MFUNCTION ? 2 + modetab[first_mode + 2] : 0;
+
+    for (i=0; i<n && flag ; i++)
+		flag = modetab[first_mode + i + 1] == modetab[second_mode + i + 1];
+
+    return flag;
 }
+
 void function_definition()
 {
     int fn = identab[lastid+3], i, pred, oldrepr = repr, ftype, n, fid = lastid;
     pgotost = 0;
     functype = identab[lastid+2];
-    ftype = modetab[functype];
-    n = modetab[functype+1];
+    ftype = modetab[functype+1];
+    n = modetab[functype+2];
     wasret = 0;
     displ = 2;
     maxdispl =3;
@@ -1229,7 +1298,7 @@ void function_definition()
     curid = id;
     for (i=0; i < n; i++)
     {
-        type = modetab[functype+i+2];
+        type = modetab[functype+i+3];
         repr = functions[fn+i+1];
         if (repr > 0)
             toidentab(0);
@@ -1276,9 +1345,10 @@ int func_declarator(int level, int func_d, int firstdecl)
     
     int loc_modetab[100], locmd = 0, numpar = 0, ident, maybe_fun, repeat = 1, i, wastype = 0, old;
     
-    loc_modetab[0] = firstdecl;
-    loc_modetab[1] = 0;
-    locmd = 2;
+	loc_modetab[0] = MFUNCTION;
+    loc_modetab[1] = firstdecl;
+    loc_modetab[2] = 0;
+    locmd = 3;
     
     while (repeat)
     {
@@ -1390,23 +1460,12 @@ int func_declarator(int level, int func_d, int firstdecl)
     }
     func_def = func_d;
     locmd = md;
-    loc_modetab[1] = numpar;
-    for (i=0; i < numpar+2; i++)
+    loc_modetab[2] = numpar;
+
+    for (i=0; i < numpar+3; i++)
         modetab[md++] = loc_modetab[i];
-    old = modetab[startmode];
-    while (old)
-        if (modeeq(startmode+1, old+1))
-            break;
-        else
-            old = modetab[old];
-    if (old)
-    {
-        md = startmode + 1;
-        return old+1;
-    }
-    modetab[md] = startmode;
-    startmode = md++;
-    return modetab[startmode]+1;
+
+	return check_duplicates();
 }
 
 void ext_decl()
@@ -1415,7 +1474,7 @@ void ext_decl()
     {
         int repeat = 1, funrepr, first = 1, t;
         wasstructdef = 0;
-        t = gettype();
+        type = gettype();
 		if (wasstructdef && next == SEMICOLON)
 		{
 			scaner();
@@ -1424,7 +1483,7 @@ void ext_decl()
             
         func_def = 3;   // func_def = 0 - (), 1 - определение функции, 2 - это предописание, 3 - не знаем или вообще не функция
 
-        if ( t )
+		if (type)
             idorpnt(after_type_must_be_ident);
         else
         {

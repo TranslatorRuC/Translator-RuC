@@ -331,6 +331,9 @@ void error(int ernum)
 		case field_not_found:
 			printf("у структуры нет такого поля\n");
 			break;
+		case get_field_not_from_struct:
+			printf("применять операции . и -> можно только к структуре\n");
+			break;
 
             
         default: ;

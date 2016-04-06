@@ -41,6 +41,10 @@ void tablesandtree()
     fprintf(output, "\n%s\n", "functions");
     for (i=1; i<=funcnum; i++)
         fprintf(output, "fn %i) %i\n", i, functions[i]);
+
+	fprintf(output, "\n%s\n", "repr");
+	for (i = 1206; i <= rp; i++)
+		fprintf(output, "rp %i) %i\n", i, reprtab[i]);
     
     fprintf(output, "\n%s\n", "modetab");
     for (i=0; i<md; i++)
@@ -137,6 +141,9 @@ void tablesandtree()
             case TSlice:
                 fprintf(output, "TSlice\n");
                 break;
+			case TSelectId:
+				fprintf(output, "TSelect %i %i\n", tree[i++], tree[i++]);
+				break;
             case TCall1:
                 fprintf(output, "TCall1 %i\n", tree[i++]);
                 break;
@@ -636,6 +643,9 @@ void tablesandcode()
             case SLICE:
                 fprintf(output, "SLICE\n");
                 break;
+			case SELECTID:
+				fprintf(output, "SELECTID\n");
+				break;
             case ASSARR:
                 fprintf(output, "ASSARR ");
                 fprintf(output, "%i ", mem[i++]);
@@ -1006,6 +1016,9 @@ void cd(int pcl)
             case SLICE:
                 printf("SLICE\n");
                 break;
+			case SELECTID:
+				printf("SELECTID\n");
+				break;
             case ASSARR:
                 printf("ASSARR ");
                 printf("%i ", mem[i++]);
