@@ -454,6 +454,6 @@
 #define after_dot_must_be_ident            301
 #define field_not_found                    302
 #define get_field_not_from_struct          303
-
+#define get_field_not_from_struct_pointer  304
 
 #endif

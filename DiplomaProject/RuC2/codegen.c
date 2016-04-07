@@ -90,10 +90,11 @@ void Expr_gen(int adfi)
                 
             case TIdenttoval:
             {
+				int t;
                 lastid = tree[tc++];
                 anstdispl = identab[lastid+3];
 //                printf("lastid=%i anstdispl=%i idtab= %i\n", lastid, anstdispl, identab[lastid+2]);
-                if (identab[lastid+2] > 0)
+				if ((t = identab[lastid + 2]) > 0 && modetab[t] == MFUNCTION)
                 {
                     if (anstdispl > 0)
                     {
@@ -169,6 +170,8 @@ void Expr_gen(int adfi)
 			case TSelect:
 			{
 				int field_displ = tree[tc++];
+				int op = tree[tc++];
+				if (op == ARROW) tocode(LAT);
 				tocode(LI);
 				tocode(field_displ);
 				tocode(SELECT);
@@ -178,9 +181,11 @@ void Expr_gen(int adfi)
 			case TSelectId:
 			{
 				int id_displ = identab[tree[tc++] + 3];
-				int field_displ = tree[tc++];			
-				tocode(LA);
+				int field_displ = tree[tc++];	
+				int op = tree[tc++];
+				tocode(LA);				
 				tocode(id_displ);
+				if (op == ARROW) tocode(LAT);
 				tocode(LI);
 				tocode(field_displ);
 				tocode(SELECT);

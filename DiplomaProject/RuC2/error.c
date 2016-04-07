@@ -15,6 +15,7 @@ void error(int ernum)
         printf_char(source[i]);
 
     printf("\n");
+	printf("%d\n", ernum);
     switch (ernum)
     {
         case after_type_must_be_ident:
@@ -332,10 +333,12 @@ void error(int ernum)
 			printf("у структуры нет такого поля\n");
 			break;
 		case get_field_not_from_struct:
-			printf("применять операции . и -> можно только к структуре\n");
+			printf("применять операцию . можно только к структуре\n");
+			break;
+		case get_field_not_from_struct_pointer:
+			printf("применять операцию -> можно только к указателю на структуру\n");
 			break;
 
-            
         default: ;
     }
     exit(2);

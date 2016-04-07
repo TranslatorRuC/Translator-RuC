@@ -6,6 +6,16 @@ extern int  nextch();
 extern int  scaner();
 extern void error(int e);
 
+int is_array(int t)
+{
+	return t > 0 && modetab[t] == MARRAY;
+}
+
+int is_pointer(int t)
+{
+	return t > 0 && modetab[t] == MPOINT;
+}
+
 void mustbe(int what, int e)
 {
     if (scaner() != what)
@@ -76,7 +86,7 @@ int toidentab(int f)                 // f=0, если не ф-ция, f=1, ес�
     {
         identab[id+3] = displ + lg;            // смещение от l (полож) или от g (отриц), для меток - значение pc, для функций - номер
 
-		displ += type > 0 && modetab[type] == MSTRUCT ? modetab[type + 3] * (lg) : lg; // для структур выделяем больше места
+		displ += type > 0 && modetab[type] == MSTRUCT ? modetab[type + 3] * lg : lg; // для структур выделяем больше места
 
         if (lg < 0)
             maxdisplg = -displ;
@@ -91,7 +101,7 @@ void binop(int op)
 {
     int rtype = stackoperands[sopnd--];
     int ltype = stackoperands[sopnd];
-    if (ltype < -20|| rtype < -20)
+    if (is_pointer(ltype)|| is_pointer(rtype))
         error(operand_is_pointer);
     if ((ltype == LINT || ltype == LCHAR) && rtype == LFLOAT)
         totree(WIDEN1);
@@ -117,7 +127,7 @@ void toval(int t)
         tree[tc-2] = t;
     if (ansttype != ROWOFCHAR)
     {
-        if (anst == ADDR && pntr > -20)
+        if (anst == ADDR && !is_pointer(pntr))
             totree(TAddrtoval);
         anst = VAL;
     }
@@ -315,9 +325,18 @@ void postexpr()
 			int needed_field_num = -1, num_of_fields, repr_field;
 			op = scaner();
 			mustbe(IDENT, after_dot_must_be_ident);
-
-			if (modetab[ansttype] != MSTRUCT)
-				error(get_field_not_from_struct);
+			sopnd++;
+			if (op == DOT)
+			{
+				if (modetab[ansttype] != MSTRUCT)
+					error(get_field_not_from_struct);
+			} 
+			else
+			{
+				if (modetab[ansttype] != MPOINT && modetab[modetab[ansttype + 1]] != MSTRUCT)
+					error(get_field_not_from_struct_pointer);
+				ansttype = modetab[ansttype + 1];
+			}				
 
 			num_of_fields = modetab[ansttype + 4] / 2;
 
@@ -337,14 +356,14 @@ void postexpr()
 			}
 			if (leftanst == IDENT)
 			{
-				tree[tc - 2] = TSelectId;
-				totree(select_displ);
+				tree[tc - 2] = TSelectId;				
 			}
 			else
 			{
 				totree(TSelect);
-				totree(select_displ);
 			}
+			totree(select_displ);
+			totree(op);
 			anst = ADDR;
 		}
 		else if (ansttype > 0 && modetab[ansttype] == MFUNCTION)
@@ -383,15 +402,15 @@ void unarexpr()
                     error(wrong_addr);
                 if (anst == IDENT)
                     toval(TIdenttoaddr);
-                ansttype -= 20;
+                ansttype = get_pointer_type(ansttype);
             }
             else
             {
                 toval(TIdenttoval);
-                if (ansttype > -20)
+                if (!is_pointer(ansttype))
                     error(aster_not_for_pointer);
                 totree(LAT);
-                ansttype += 20;
+				ansttype = modetab[ansttype + 1];
             }
         }
         else
@@ -551,10 +570,10 @@ void exprassnvoid()
 
 void exprassn(int level)
 {
-    int opp = 0, leftanst, lid, oldpntr;
+    int opp = 0, leftanst, lstid, oldpntr;
     unarexpr();
     leftanst = anst;
-    lid = lastid;
+    lstid = lastid;
     while (opassn())
     {
         oldpntr = pntr;
@@ -568,8 +587,8 @@ void exprassn(int level)
     if (opp)
     {
         int rtype = stackoperands[sopnd--];
-        int ltype = stackoperands[sopnd--];
-        if (ltype < -20 && ltype != rtype && ltype != rtype - 20)
+        int ltype = stackoperands[sopnd];  // тут было --, но вроде бы не нужно
+		if (is_pointer(ltype) && ltype != rtype && modetab[ltype + 1] != rtype)
                 error(wrong_pnt_assn);
         if ((ltype == LINT || ltype == LCHAR) && rtype == LFLOAT)
             error(assmnt_float_to_int);
@@ -582,7 +601,7 @@ void exprassn(int level)
             opp += 11;
         totreef(opp);
         if (leftanst ==IDENT)
-            totree(-lid);
+            totree(-lstid);
     }
     else
     {
@@ -734,7 +753,7 @@ void statement()
                 exprinbrkts();
                 totree(TPrint);
                 totree(ansttype);
-                if (ansttype < -20)
+                if (is_pointer(ansttype))
                     error( pointer_in_print);
                 sopnd --;
             }
@@ -1024,7 +1043,7 @@ void idorpnt(int e)
     if (next == LMULT)
     {
         scaner();
-        point = -20;
+        point = 1;
     }
     mustbe(IDENT, e);
 }
@@ -1077,8 +1096,6 @@ int get_pointer_type(int t)
 
 	int result_type = md;
 	modetab[md++] = MPOINT;
-	modetab[md++] = 0; // ссылка на массив
-	modetab[md++] = 0; // ссылка на указатель
 	modetab[md++] = t; // ссылка на элемент
 	return modetab[t + 2] = check_duplicates();
 }
@@ -1110,6 +1127,7 @@ int struct_decl_list()
 		do
 		{
 			idorpnt(wait_ident_after_comma_in_decl);
+			if (point) t = get_pointer_type(t);
 			loc_modetab[locmd++] = t;
 			loc_modetab[locmd++] = repr;
 			field_count++;
@@ -1201,8 +1219,7 @@ void block(int b)
         idorpnt(after_type_must_be_ident);
         do
         {
-            type = firstdecl + point;
-            
+			type = point ? get_pointer_type(firstdecl) : firstdecl;
             decl_id();
             
             if (next == COMMA)
@@ -1334,7 +1351,7 @@ int func_declarator(int level, int func_d, int firstdecl)
     
     while (repeat)
     {
-        if ((type = cur) == LINT || cur == LCHAR || cur == LFLOAT)
+        if (cur == LINT || cur == LCHAR || cur == LFLOAT || cur == LSTRUCT)
         {
             maybe_fun = 0;    // м.б. параметр-ф-ция? 0 - ничего не было, 1 - была *, 2 - была [
             ident = 0;        // = 0 - не было идента, 1 - был статический идент, 2 - был идент-параметр-функция
@@ -1361,7 +1378,7 @@ int func_declarator(int level, int func_d, int firstdecl)
             {
                 scaner();
                 maybe_fun = 2;
-                if (type < -20)
+                if (is_pointer(type))
                     error(aster_with_row);
                 mustbe(RIGHTSQBR, wait_right_sq_br);
                 if (next == LEFTSQBR)
@@ -1465,26 +1482,22 @@ void ext_decl()
             
         func_def = 3;   // func_def = 0 - (), 1 - определение функции, 2 - это предописание, 3 - не знаем или вообще не функция
 
-		if (type)
-            idorpnt(after_type_must_be_ident);
-        else
-        {
+		if (!type)
             type = LINT;
-            point = 0;
-            if (cur == LMULT)
-            {
-                scaner();
-                point -= 20;
-            }
-        }
+
+		if (cur == LMULT)
+		{
+			scaner();
+			type = get_pointer_type(type);
+		}
+		idorpnt(after_type_must_be_ident);
         firstdecl = type;
-        type += point;
         do                       // описываемые объекты через ',' определение функции может быть только одно, никаких ','
         {
             if (cur != IDENT)
                 error(decl_must_start_from_ident_or_decl);
             
-            if (firstdecl  < -20 && next == LEFTBR)
+            if (is_pointer(firstdecl) && next == LEFTBR)
                 error(aster_before_func);
             
             if (next == LEFTBR)                // определение или предописание функции
@@ -1533,7 +1546,8 @@ void ext_decl()
                 scaner();
                 first = 0;
                 idorpnt(wait_ident_after_comma_in_decl);
-                type = firstdecl + point;
+				if (point)
+					type = get_pointer_type(firstdecl);
             }
             else if (next == SEMICOLON)
                  {
