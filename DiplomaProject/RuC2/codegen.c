@@ -150,17 +150,30 @@ void Expr_gen(int adfi)
                 tocode(LOAD);
                 tocode(displ);
                 Expr_gen(0);
+				tocode(LI);
+				tocode(tree[tc++]);
                 tocode(SLICE);
             }
                 break;
                 
             case TSlice:
             {
-                tocode(LAT);
-//                Expr_gen(0);
+				tocode(LAT);
+				Expr_gen(0);
+				tocode(LI);
+				tocode(tree[tc++]);               
                 tocode(SLICE);
             }
                 break;
+
+			case TSelect:
+			{
+				int field_displ = tree[tc++];
+				tocode(LI);
+				tocode(field_displ);
+				tocode(SELECT);
+			}
+				break;
 
 			case TSelectId:
 			{
@@ -170,7 +183,7 @@ void Expr_gen(int adfi)
 				tocode(id_displ);
 				tocode(LI);
 				tocode(field_displ);
-				tocode(SELECTID);
+				tocode(SELECT);
 			}
 				break;
                 
@@ -460,6 +473,7 @@ void Declid_gen()
     int identref = tree[tc++], initref = tree[tc++], N = tree[tc++];
     int olddispl = identab[identref+3], i;
 	int t = identab[identref + 2];	
+	int elemtype, elem_type_len;
     if (N == 0)
     {
         if (initref)
@@ -479,8 +493,12 @@ void Declid_gen()
         }
     }
     else if (N == 1)
-    {
-        Expr_gen(0);
+    {	
+        Expr_gen(0);		
+		elemtype = modetab[t + 2];
+		elem_type_len = modetab[elemtype + 3];
+		tocode(LI);
+		tocode(elem_type_len);
         tocode(DEFARR);
         tocode(olddispl);
         if (initref)
@@ -498,6 +516,10 @@ void Declid_gen()
     {
         Expr_gen(0);
         Expr_gen(0);
+		elemtype = modetab[modetab[t + 2] + 2];
+		elem_type_len = modetab[elemtype + 3];
+		tocode(LI);
+		tocode(elem_type_len);
         tocode(DEFARR2);
         tocode(olddispl);
         if (initref)

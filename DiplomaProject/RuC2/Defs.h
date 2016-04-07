@@ -200,7 +200,7 @@
 #define DOUBLE  173
 #define DEFARR2 174
 #define ASSARR2 175
-#define SELECTID 176
+#define SELECT 176
 
 // Коды операций стандартных функций
 
@@ -347,6 +347,7 @@
 #define TGetid      -331
 #define TIdenttoaddr -332
 #define TSelectId     -333
+#define TSelect       -334
 
 // Коды ошибок
 

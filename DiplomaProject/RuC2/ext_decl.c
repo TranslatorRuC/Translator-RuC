@@ -222,150 +222,150 @@ void postexpr()
 {
     int lid, leftanst, leftansttype;
     primaryexpr();
-    leftanst = anst;
     lid = lastid;
-    leftansttype = ansttype;
-
-    if (next == LEFTSQBR)
-    {
-        if  (ansttype != ROWOFINT && ansttype != ROWOFCHAR && ansttype != ROWOFFLOAT &&
-              ansttype != ROWROWOFINT && ansttype != ROWROWOFCHAR && ansttype != ROWROWOFFLOAT)
-             error(slice_not_from_array);
-        scaner();
-        scaner();
-        if (leftanst == IDENT)
-        {
-            tree[tc-2] = TSliceident;
-            expr();
-            index_check();
-        }
-        else
-        {
-            expr();
-            index_check();
-            totree(TSlice);                       // STRING
-        }
-        mustbe(RIGHTSQBR, no_rightsqbr_in_slice);
-
-        
-        if (next == LEFTSQBR)
-        {
-            scaner();
-            scaner();
-            expr();
-            index_check();
-            totree(TSlice);
-            mustbe(RIGHTSQBR, no_rightsqbr_in_slice);
-            --sopnd;
-            stackoperands[--sopnd] = ansttype = leftansttype + 14;
-        }
-        else
-            stackoperands[--sopnd] = ansttype = leftansttype + 4;
-        anst = ADDR;
-     }
-     else if (next == LEFTBR)
-     {
-         int i, j, n, oldpntr = pntr;
-         scaner();
-         if (leftansttype < 0)
-              error(call_not_from_function);
-         if (identab[lid+1] < 0)
-             error(declarator_in_call);
-         
-         n = modetab[leftansttype+2];
-         
-         totree(TCall1);
-         totree(n);
-         j = leftansttype + 3;
-         for (i=0; i<n; i++)
-         {
-             int mdj = modetab[j];  // это вид формального параметра, в ansttype будет вид фактического параметра
-             scaner();
-             if (mdj > 0)
-             {
-                 int ld = reprtab[repr+1];
-                 if( ! (cur == IDENT && identab[ld+2] == mdj) )
-                     error(diff_formal_param_type_and_actual);
-                 totree(TIdenttoval);
-                 totree(ld);
-                 totree(TExprend);
-             }
-             else
-             {
-                 pntr = mdj;
-                 exprassn(0);
-                 if ((mdj == LINT || mdj == LCHAR) && ansttype == LFLOAT)
-                     error(float_instead_int);
-                 if (mdj == LFLOAT && (ansttype == LINT || ansttype == LCHAR))
-                     insertwiden();
-                 
-//                 printf("ansttype= %i mdj= %i\n", ansttype, mdj);
-                 if (ansttype != mdj)
-                     error(diff_formal_param_type_and_actual);
-                 --sopnd;
-                 pntr = oldpntr;
-             }
-             if (i < n-1 && scaner() != COMMA)
-                 error(no_comma_in_act_params);
-             j++;
-         }
-         mustbe(RIGHTBR, wrong_number_of_params);
-         totree(TCall2);
-         totree(-lid);
-         stackoperands[sopnd] = ansttype = modetab[leftansttype] + 8;   //  --?
-         anst = VAL;
-     }
-	 else if (next == DOT || next == ARROW)
-	 {
-		 int select_displ = 0, field_type;
-		 while (next == DOT || next == ARROW)
-		 {
-			 int needed_field_num = -1, num_of_fields, repr_field;
-			 op = scaner();
-			 mustbe(IDENT, after_dot_must_be_ident);
-
-			 if (modetab[ansttype] != MSTRUCT)
-				 error(get_field_not_from_struct);
-
-			 num_of_fields = modetab[ansttype + 4] / 2;
-
-			 for (int i = 0; i < num_of_fields; i++)
-			 {
-				 field_type = modetab[ansttype + 5 + i * 2];
-				 if (modetab[ansttype + 6 + i * 2] == repr)
-				 {
-					 needed_field_num = i;
-					 ansttype = field_type;
-					 break;
-				 }
-				 else
-				 {
-					 select_displ += modetab[field_type] == MSTRUCT ? modetab[field_type + 3] : 1; // прибавляем к суммарному смещению длину типа
-				 }		 
-			 }
-		 }
-		 tree[tc - 2] = TSelectId;
-		 totree(select_displ);
-		 anst = ADDR;
-	 }
-     else if (ansttype > 0 && modetab[ansttype] == MFUNCTION)
-        error(func_not_in_call);
     
-     if (next == INC || next == DEC)
-     {
-         if (ansttype !=LINT && ansttype != LCHAR && ansttype != LFLOAT)
-             error(wrong_operand);
-         if  (anst != IDENT && anst != ADDR)
-             error(unassignable_inc);
-         int op = (next== INC) ? POSTINC : POSTDEC;
-         if (anst == ADDR)
-             op += 4;
-         scaner();
-         totreef(op);
-         if (anst == IDENT)
-             totree(-lid);
-         anst = VAL;
-     }
+	while (next == LEFTSQBR || next == LEFTBR || next == DOT || next == ARROW || next == INC || next == DEC)
+	{
+		leftanst = anst;
+		leftansttype = ansttype;
+		if (next == LEFTSQBR)
+		{
+			int element_type, elem_type_len;
+			if (modetab[ansttype] != MARRAY)
+				error(slice_not_from_array);
+			element_type = modetab[leftansttype + 2];
+			elem_type_len = element_type > 0 && modetab[element_type] == MSTRUCT ? modetab[element_type + 3] : 1;
+			scaner();
+			scaner();
+			if (leftanst == IDENT)
+			{
+				tree[tc - 2] = TSliceident;
+				expr();
+				index_check();
+				totree(elem_type_len);
+			}
+			else
+			{
+				totree(TSlice);
+				expr();
+				index_check();					
+				totree(elem_type_len);	// STRING
+			}
+			mustbe(RIGHTSQBR, no_rightsqbr_in_slice);
+
+			stackoperands[--sopnd] = ansttype = element_type;
+			anst = ADDR;
+		}
+		else if (next == LEFTBR)
+		{
+			int i, j, n, oldpntr = pntr;
+			scaner();
+			if (leftansttype < 0)
+				error(call_not_from_function);
+			if (identab[lid + 1] < 0)
+				error(declarator_in_call);
+
+			n = modetab[leftansttype + 2];
+
+			totree(TCall1);
+			totree(n);
+			j = leftansttype + 3;
+			for (i = 0; i<n; i++)
+			{
+				int mdj = modetab[j];  // это вид формального параметра, в ansttype будет вид фактического параметра
+				scaner();
+				if (mdj > 0)
+				{
+					int ld = reprtab[repr + 1];
+					if (!(cur == IDENT && identab[ld + 2] == mdj))
+						error(diff_formal_param_type_and_actual);
+					totree(TIdenttoval);
+					totree(ld);
+					totree(TExprend);
+				}
+				else
+				{
+					pntr = mdj;
+					exprassn(0);
+					if ((mdj == LINT || mdj == LCHAR) && ansttype == LFLOAT)
+						error(float_instead_int);
+					if (mdj == LFLOAT && (ansttype == LINT || ansttype == LCHAR))
+						insertwiden();
+
+					//                 printf("ansttype= %i mdj= %i\n", ansttype, mdj);
+					if (ansttype != mdj)
+						error(diff_formal_param_type_and_actual);
+					--sopnd;
+					pntr = oldpntr;
+				}
+				if (i < n - 1 && scaner() != COMMA)
+					error(no_comma_in_act_params);
+				j++;
+			}
+			mustbe(RIGHTBR, wrong_number_of_params);
+			totree(TCall2);
+			totree(-lid);
+			stackoperands[sopnd] = ansttype = modetab[leftansttype] + 8;   //  --?
+			anst = VAL;
+		}
+		else if (next == DOT || next == ARROW)
+		{
+			int select_displ = 0, field_type;
+
+			int needed_field_num = -1, num_of_fields, repr_field;
+			op = scaner();
+			mustbe(IDENT, after_dot_must_be_ident);
+
+			if (modetab[ansttype] != MSTRUCT)
+				error(get_field_not_from_struct);
+
+			num_of_fields = modetab[ansttype + 4] / 2;
+
+			for (int i = 0; i < num_of_fields; i++)
+			{
+				field_type = modetab[ansttype + 5 + i * 2];
+				if (modetab[ansttype + 6 + i * 2] == repr)
+				{
+					needed_field_num = i;
+					ansttype = field_type;
+					break;
+				}
+				else
+				{
+					select_displ += modetab[field_type] == MSTRUCT ? modetab[field_type + 3] : 1; // прибавляем к суммарному смещению длину типа
+				}
+			}
+			if (leftanst == IDENT)
+			{
+				tree[tc - 2] = TSelectId;
+				totree(select_displ);
+			}
+			else
+			{
+				totree(TSelect);
+				totree(select_displ);
+			}
+			anst = ADDR;
+		}
+		else if (ansttype > 0 && modetab[ansttype] == MFUNCTION)
+			error(func_not_in_call);
+
+		else if (next == INC || next == DEC)
+		{
+			if (ansttype != LINT && ansttype != LCHAR && ansttype != LFLOAT)
+				error(wrong_operand);
+			if (anst != IDENT && anst != ADDR)
+				error(unassignable_inc);
+			int op = (next == INC) ? POSTINC : POSTDEC;
+			if (anst == ADDR)
+				op += 4;
+			scaner();
+			totreef(op);
+			if (anst == IDENT)
+				totree(-lid);
+			anst = VAL;
+		}
+	}
 }
 
 void unarexpr()
@@ -638,7 +638,6 @@ void decl_id()
 {
 	int decl_type = type;
     int oldid = toidentab(0);
-    
     int initref, n, ni;     // n - размерность (0-скаляр), д.б. столько выражений-границ, инициализатор начинается с L  
     totree(TDeclid);
     totree(oldid);
@@ -659,43 +658,26 @@ void decl_id()
     }
     else if (next == LEFTSQBR)
     {
-        scaner();
-        scaner();
-        tree[n] = 1;
-        identab[oldid+2] -= 4;
-        pntr = LINT;
-        unarexpr();
-        condexpr();
-        totree(TExprend);
-        sopnd--;
-        mustbe(RIGHTSQBR, wait_right_sq_br);
-        if (next == ASS)
-        {
-            tree[initref] = tc;
-            totree(TInit);
-            ni = tc++;
-            tree[ni] = arrinit(decl_type);
-        }
-        else if (next == LEFTSQBR)
-        {
-            scaner();
-            scaner();
-            tree[n]++;
-            identab[oldid+2] -= 10;
-            pntr = LINT;
-            unarexpr();
-            condexpr();
-            totree(TExprend);
-            sopnd--;
-            mustbe(RIGHTSQBR, wait_right_sq_br);
-            if (next == ASS)
-            {
-                tree[initref] = tc;
-                totree(TInit);
-                ni = tc++;
-                tree[ni] = arrinit(decl_type);
-            }
-        }
+		while (next == LEFTSQBR)
+		{
+			scaner();
+			scaner();
+			tree[n]++;
+			identab[oldid + 2] =  get_array_type(identab[oldid + 2]);
+			pntr = LINT;
+			unarexpr();
+			condexpr();
+			totree(TExprend);
+			sopnd--;
+			mustbe(RIGHTSQBR, wait_right_sq_br);
+			if (next == ASS)
+			{
+				tree[initref] = tc;
+				totree(TInit);
+				ni = tc++;
+				tree[ni] = arrinit(decl_type);
+			}
+		}
     }
 }
 
@@ -707,7 +689,7 @@ void statement()
     int flagsemicol = 1, oldwasdefault = wasdefault, oldinswitch = inswitch;
     wasdefault = 0;
     scaner();
-    if ((cur == LINT || cur == LCHAR || cur == LFLOAT || cur == LVOID) && blockflag)
+    if ((cur == LINT || cur == LCHAR || cur == LFLOAT || cur == LVOID || cur == LSTRUCT) && blockflag)
         error(decl_after_strmt);
     if (cur == BEGIN)
     {
@@ -1090,28 +1072,28 @@ int get_type_len(int t)
 int get_pointer_type(int t)
 {
 	int pointer_ref = modetab[t + 2];
-	if (pointer_ref == MPOINT)
+	if (modetab[pointer_ref] == MPOINT)
 		return pointer_ref;
 
 	int result_type = md;
-	modetab[md] = MPOINT;
+	modetab[md++] = MPOINT;
 	modetab[md++] = 0; // ссылка на массив
 	modetab[md++] = 0; // ссылка на указатель
 	modetab[md++] = t; // ссылка на элемент
-	return result_type;
+	return modetab[t + 2] = check_duplicates();
 }
 
 int get_array_type(int t)
 {
-	int array_ref = modetab[t + 2];
-	if (array_ref == MARRAY)
+	int array_ref = modetab[t + 1], res;
+	if (modetab[array_ref] == MARRAY)
 		return array_ref;
 
 	int result_type = md;
-	modetab[md] = MARRAY;
+	modetab[md++] = MARRAY;
 	modetab[md++] = 0; // ссылка на массив
 	modetab[md++] = t; // ссылка на элемент
-	return result_type;
+	return modetab[t + 1] = check_duplicates();
 }
 
 int struct_decl_list()

@@ -142,7 +142,10 @@ void tablesandtree()
                 fprintf(output, "TSlice\n");
                 break;
 			case TSelectId:
-				fprintf(output, "TSelect %i %i\n", tree[i++], tree[i++]);
+				fprintf(output, "TSelectId %i %i\n", tree[i++], tree[i++]);
+				break;
+			case TSelect:
+				fprintf(output, "TSelect %i\n", tree[i++]);
 				break;
             case TCall1:
                 fprintf(output, "TCall1 %i\n", tree[i++]);
@@ -643,8 +646,8 @@ void tablesandcode()
             case SLICE:
                 fprintf(output, "SLICE\n");
                 break;
-			case SELECTID:
-				fprintf(output, "SELECTID\n");
+			case SELECT:
+				fprintf(output, "SELECT\n");
 				break;
             case ASSARR:
                 fprintf(output, "ASSARR ");
@@ -1016,8 +1019,8 @@ void cd(int pcl)
             case SLICE:
                 printf("SLICE\n");
                 break;
-			case SELECTID:
-				printf("SELECTID\n");
+			case SELECT:
+				printf("SELECT\n");
 				break;
             case ASSARR:
                 printf("ASSARR ");
