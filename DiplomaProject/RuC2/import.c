@@ -248,7 +248,7 @@ void auxget(int *r, int t)
 void import()
 {
     FILE *input;
-    int i,r, n, flagstop = 1, entry, num, elemsize;
+    int i,r, n, flagstop = 1, entry, num, elemsize, from, to;
     float lf, rf;
     
 #ifdef ROBOT
@@ -598,6 +598,14 @@ void import()
             case DIVASSV:
                 mem[dsp()] /= mem[x--];
                 break;
+			case STRUCTCOPY:
+				n = mem[x--]; 
+				from = mem[x--];
+				to = mem[x--];
+				
+				for (i = 0; i < n; i++)
+					mem[to + i] = mem[from + i];
+				break;
                 
             case ASSAT:
                 r = mem[mem[x-1]] = mem[x];

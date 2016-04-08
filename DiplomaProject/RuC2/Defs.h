@@ -79,6 +79,8 @@
 #define MULTASSATV 221
 #define DIVASSATV  222
 
+#define STRUCTCOPY 223
+
 #define LREM      23
 #define LSHL      24
 #define LSHR      25
@@ -455,5 +457,6 @@
 #define field_not_found                    302
 #define get_field_not_from_struct          303
 #define get_field_not_from_struct_pointer  304
+#define struct_types_not_eq                305
 
 #endif

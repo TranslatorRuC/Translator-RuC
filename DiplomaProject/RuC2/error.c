@@ -338,6 +338,9 @@ void error(int ernum)
 		case get_field_not_from_struct_pointer:
 			printf("применять операцию -> можно только к указателю на структуру\n");
 			break;
+		case struct_types_not_eq:
+			printf("типы структур не совпадают в присваивании\n");
+			break;
 
         default: ;
     }

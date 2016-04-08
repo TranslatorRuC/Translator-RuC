@@ -325,7 +325,7 @@ void postexpr()
 			int needed_field_num = -1, num_of_fields, repr_field;
 			op = scaner();
 			mustbe(IDENT, after_dot_must_be_ident);
-			sopnd++;
+
 			if (op == DOT)
 			{
 				if (modetab[ansttype] != MSTRUCT)
@@ -346,7 +346,7 @@ void postexpr()
 				if (modetab[ansttype + 6 + i * 2] == repr)
 				{
 					needed_field_num = i;
-					ansttype = field_type;
+					stackoperands[sopnd] = ansttype = field_type;
 					break;
 				}
 				else
@@ -420,8 +420,7 @@ void unarexpr()
                 error(int_op_for_float);
             else if (op == LMINUS)
                 totreef(UNMINUS);
-            else if (op == LPLUS)
-                ;
+            else if (op == LPLUS);
             else
                 totree(op);
             stackoperands[sopnd] = ansttype;
@@ -570,10 +569,10 @@ void exprassnvoid()
 
 void exprassn(int level)
 {
-    int opp = 0, leftanst, lstid, oldpntr;
+    int opp = 0, leftanst, lid, oldpntr;
     unarexpr();
     leftanst = anst;
-    lstid = lastid;
+    lid = lastid;
     while (opassn())
     {
         oldpntr = pntr;
@@ -588,20 +587,32 @@ void exprassn(int level)
     {
         int rtype = stackoperands[sopnd--];
         int ltype = stackoperands[sopnd];  // тут было --, но вроде бы не нужно
-		if (is_pointer(ltype) && ltype != rtype && modetab[ltype + 1] != rtype)
-                error(wrong_pnt_assn);
-        if ((ltype == LINT || ltype == LCHAR) && rtype == LFLOAT)
-            error(assmnt_float_to_int);
-        if ((rtype == LINT ||rtype == LCHAR) && ltype == LFLOAT)
-            totree(WIDEN);
-        if (ltype == LFLOAT || rtype == LFLOAT)
-            ansttype = LFLOAT;
-        stackoperands[sopnd] = ansttype;
-        if (leftanst == ADDR)
-            opp += 11;
-        totreef(opp);
-        if (leftanst ==IDENT)
-            totree(-lstid);
+		if (rtype > 0 && ltype > 0) // присваивание структур
+		{
+			if (ltype != rtype)
+				error(struct_types_not_eq);			
+			opp = STRUCTCOPY;
+			totreef(opp);
+			totree(-modetab[ltype + 3]);
+		}
+		else
+		{
+			if (is_pointer(ltype) && ltype != rtype && modetab[ltype + 1] != rtype)
+				error(wrong_pnt_assn);
+			if ((ltype == LINT || ltype == LCHAR) && rtype == LFLOAT)
+				error(assmnt_float_to_int);
+			if ((rtype == LINT || rtype == LCHAR) && ltype == LFLOAT)
+				totree(WIDEN);
+			if (ltype == LFLOAT || rtype == LFLOAT)
+				ansttype = LFLOAT;			
+			if (leftanst == ADDR)
+				opp += 11;
+			totreef(opp);		
+			if (leftanst == IDENT)
+				totree(-lid);
+		}
+		
+		stackoperands[sopnd] = ansttype;	       
     }
     else
     {

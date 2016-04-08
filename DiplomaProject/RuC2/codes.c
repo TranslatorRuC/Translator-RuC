@@ -142,10 +142,10 @@ void tablesandtree()
                 fprintf(output, "TSlice\n");
                 break;
 			case TSelectId:
-				fprintf(output, "TSelectId %i %i\n", tree[i++], tree[i++]);
+				fprintf(output, "TSelectId %i %i %i\n", tree[i++], tree[i++], tree[i++]);
 				break;
 			case TSelect:
-				fprintf(output, "TSelect %i\n", tree[i++]);
+				fprintf(output, "TSelect %i %i\n", tree[i++], tree[i++]);
 				break;
             case TCall1:
                 fprintf(output, "TCall1 %i\n", tree[i++]);
@@ -443,7 +443,9 @@ void tablesandcode()
             case ASSATV:
                 fprintf(output, "=@V\n");
                 break;
-
+			case STRUCTCOPY:
+				fprintf(output, "=STRCOP\n");
+				break;
                 
             case PLUSASS:
                 fprintf(output, "+= ");

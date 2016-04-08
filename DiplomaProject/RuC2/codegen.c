@@ -52,17 +52,25 @@ void finalop()
         tc++;
         if (c != NOP)
         {
-            tocode(c);
-            if ((c >= ASS && c <= DIVASS) || (c >= ASSV && c <= DIVASSV) ||
-                (c >= PLUSASSR && c <= DIVASSR) || (c >= PLUSASSRV && c <= DIVASSRV) ||
-                (c >= POSTINC && c <= DEC) || (c >= POSTINCV && c <= DECV) ||
-                (c >= POSTINCR && c <= DECR) || (c >= POSTINCRV && c <= DECRV))
-            {
-                tocode(identab[- tree[tc++] + 3]);
-            }
+			if (c == STRUCTCOPY)
+			{
+				tocode(LI);
+				tocode(-tree[tc++]);
+				tocode(c);
+			}
+			else
+			{
+				tocode(c);
+				if ((c >= ASS && c <= DIVASS) || (c >= ASSV && c <= DIVASSV) ||
+					(c >= PLUSASSR && c <= DIVASSR) || (c >= PLUSASSRV && c <= DIVASSRV) ||
+					(c >= POSTINC && c <= DEC) || (c >= POSTINCV && c <= DECV) ||
+					(c >= POSTINCR && c <= DECR) || (c >= POSTINCRV && c <= DECRV))
+				{
+					tocode(identab[-tree[tc++] + 3]);
+				}
+			}	
         }
     }
-
 }
 
 void Expr_gen(int adfi)
@@ -94,18 +102,27 @@ void Expr_gen(int adfi)
                 lastid = tree[tc++];
                 anstdispl = identab[lastid+3];
 //                printf("lastid=%i anstdispl=%i idtab= %i\n", lastid, anstdispl, identab[lastid+2]);
-				if ((t = identab[lastid + 2]) > 0 && modetab[t] == MFUNCTION)
+				if ((t = identab[lastid + 2]) > 0)
                 {
-                    if (anstdispl > 0)
-                    {
-                        tocode(LI);
-                        tocode(anstdispl);
-                    }
-                    else
-                    {
-                        tocode(LOAD);
-                        tocode(-anstdispl);
-                    }
+					if (modetab[t] == MFUNCTION)
+					{
+
+						if (anstdispl > 0)
+						{
+							tocode(LI);
+							tocode(anstdispl);
+						}
+						else
+						{
+							tocode(LOAD);
+							tocode(-anstdispl);
+						}
+					}
+					if (modetab[t] == MSTRUCT)
+					{
+						tocode(LA);
+						tocode(anstdispl);
+					}
                 }
                 else
                 {
